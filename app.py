@@ -472,14 +472,21 @@ def eliminar_dia_festivo(fecha):
 
 
 # Consultar horas ocupadas para un día
-def horas_ocupadas(dia):
+def horas_ocupadas(dia, peluquero_id=None):
     # Si el día está cerrado o es festivo, todas las horas están ocupadas
-    if es_dia_cerrado(dia) or es_dia_festivo(dia):
+    if es_dia_cerrado(dia, peluquero_id) or es_dia_festivo(dia):
         return obtener_horarios_disponibles()
     
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute('SELECT hora FROM citas WHERE dia = ?', (dia,))
+    
+    if peluquero_id:
+        # Filtrar por peluquero específico
+        c.execute('SELECT hora FROM citas WHERE dia = ? AND peluquero_id = ?', (dia, peluquero_id))
+    else:
+        # Todas las citas del día (sin filtro de peluquero)
+        c.execute('SELECT hora FROM citas WHERE dia = ?', (dia,))
+    
     ocupadas = [row[0] for row in c.fetchall()]
     conn.close()
     return ocupadas
@@ -633,9 +640,11 @@ def configuracion():
 def horas_disponibles():
     data = request.get_json()
     dia = normalizar_fecha(data.get('dia'))
+    peluquero_id = data.get('peluquero_id')
+    
     # Obtener horarios desde la BD
     todas = obtener_horarios_disponibles()
-    ocupadas = horas_ocupadas(dia)
+    ocupadas = horas_ocupadas(dia, peluquero_id)
     libres = [h for h in todas if h not in ocupadas]
     return jsonify({'libres': libres})
 
@@ -649,9 +658,17 @@ def reservar_cita():
     hora = data.get('hora')
     telefono = data.get('telefono', '')
     peluquero_id = data.get('peluquero_id')
-    # Comprobar si la hora sigue libre
-    if hora in horas_ocupadas(dia):
-        return jsonify({'ok': False, 'msg': 'La hora ya está ocupada'})
+    
+    # Comprobar si la hora sigue libre (considerando el peluquero si se especifica)
+    if peluquero_id:
+        # Verificar ocupación específica del peluquero
+        if hora in horas_ocupadas(dia, peluquero_id):
+            return jsonify({'ok': False, 'msg': 'La hora ya está ocupada para este peluquero'})
+    else:
+        # Verificar ocupación general
+        if hora in horas_ocupadas(dia):
+            return jsonify({'ok': False, 'msg': 'La hora ya está ocupada'})
+    
     guardar_cita(nombre, servicio, dia, hora, telefono, peluquero_id)
     return jsonify({'ok': True, 'msg': 'Cita reservada correctamente'})
 
@@ -664,18 +681,41 @@ def agregar_cita():
     fecha = data.get('fecha')
     hora = data.get('hora')
     telefono = data.get('telefono', '')
+    peluquero_id = data.get('peluquero_id')
     
     # Normalizar la fecha
     dia = normalizar_fecha(fecha)
     if not dia:
         return jsonify({'success': False, 'msg': 'Fecha inválida'})
     
-    # Comprobar si la hora está ocupada
-    if hora in horas_ocupadas(dia):
-        return jsonify({'success': False, 'msg': 'La hora ya está ocupada'})
+    # Verificar si el día está cerrado o es festivo
+    if es_dia_cerrado(dia, peluquero_id) or es_dia_festivo(dia):
+        return jsonify({'success': False, 'msg': 'No se pueden agregar citas en días cerrados o festivos'})
+    
+    # Verificar si es domingo
+    dia_obj = datetime.datetime.strptime(dia, '%Y-%m-%d')
+    if dia_obj.weekday() == 6:  # Domingo
+        return jsonify({'success': False, 'msg': 'No se pueden agregar citas en domingos'})
+    
+    # Comprobar si la hora está ocupada (considerando el peluquero si se especifica)
+    if peluquero_id:
+        # Verificar ocupación específica del peluquero
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute('SELECT COUNT(*) FROM citas WHERE dia = ? AND hora = ? AND peluquero_id = ?', 
+                 (dia, hora, peluquero_id))
+        ocupada = c.fetchone()[0] > 0
+        conn.close()
+        
+        if ocupada:
+            return jsonify({'success': False, 'msg': 'La hora ya está ocupada para este peluquero'})
+    else:
+        # Verificar ocupación general
+        if hora in horas_ocupadas(dia):
+            return jsonify({'success': False, 'msg': 'La hora ya está ocupada'})
     
     # Guardar la cita
-    guardar_cita(nombre, servicio, dia, hora, telefono)
+    guardar_cita(nombre, servicio, dia, hora, telefono, peluquero_id)
     return jsonify({'success': True, 'msg': 'Cita agregada correctamente'})
 
 # --- ENDPOINT PARA CONSULTAR CITAS DE UN DÍA (panel de control) ---
@@ -683,8 +723,9 @@ def agregar_cita():
 def citas_dia():
     data = request.get_json()
     dia_original = data.get('dia')
+    peluquero_id = data.get('peluquero_id')
     dia = normalizar_fecha(dia_original)
-    print(f"🔍 Consultando citas para: {dia_original} -> {dia}")
+    print(f"🔍 Consultando citas para: {dia_original} -> {dia} (Peluquero: {peluquero_id})")
     
     if not dia:
         print(f"❌ Error: fecha inválida '{dia_original}'")
@@ -693,17 +734,30 @@ def citas_dia():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     
-    # Verificar si hay citas para esta fecha
-    c.execute('SELECT COUNT(*) FROM citas WHERE dia = ?', (dia,))
-    total_citas = c.fetchone()[0]
-    print(f"📊 Total de citas en BD para {dia}: {total_citas}")
+    # Construir query con filtro de peluquero si se especifica
+    if peluquero_id:
+        c.execute('SELECT COUNT(*) FROM citas WHERE dia = ? AND peluquero_id = ?', (dia, peluquero_id))
+        total_citas = c.fetchone()[0]
+        print(f"📊 Total de citas en BD para {dia} y peluquero {peluquero_id}: {total_citas}")
+        
+        c.execute('''
+            SELECT c.id, c.hora, c.nombre, c.servicio, c.telefono, c.peluquero_id, p.nombre as peluquero_nombre 
+            FROM citas c 
+            LEFT JOIN peluqueros p ON c.peluquero_id = p.id 
+            WHERE c.dia = ? AND c.peluquero_id = ?
+        ''', (dia, peluquero_id))
+    else:
+        c.execute('SELECT COUNT(*) FROM citas WHERE dia = ?', (dia,))
+        total_citas = c.fetchone()[0]
+        print(f"📊 Total de citas en BD para {dia}: {total_citas}")
+        
+        c.execute('''
+            SELECT c.id, c.hora, c.nombre, c.servicio, c.telefono, c.peluquero_id, p.nombre as peluquero_nombre 
+            FROM citas c 
+            LEFT JOIN peluqueros p ON c.peluquero_id = p.id 
+            WHERE c.dia = ?
+        ''', (dia,))
     
-    c.execute('''
-        SELECT c.id, c.hora, c.nombre, c.servicio, c.telefono, c.peluquero_id, p.nombre as peluquero_nombre 
-        FROM citas c 
-        LEFT JOIN peluqueros p ON c.peluquero_id = p.id 
-        WHERE c.dia = ?
-    ''', (dia,))
     rows = c.fetchall()
     conn.close()
     
@@ -811,16 +865,45 @@ def citas_por_telefono():
     ]
     return jsonify({'citas': citas})
 
-@app.route('/borrar_cita', methods=['POST'])
-def borrar_cita():
+@app.route('/editar_cita', methods=['POST'])
+def editar_cita():
     data = request.get_json()
-    fecha = normalizar_fecha(data.get('fecha'))
-    hora = data.get('hora')
+    cita_id = data.get('id')
+    nombre = data.get('nombre')
+    servicio = data.get('servicio')
+    telefono = data.get('telefono')
+    peluquero_id = data.get('peluquero_id')
     
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
-        c.execute('DELETE FROM citas WHERE dia = ? AND hora = ?', (fecha, hora))
+        
+        # Actualizar la cita
+        c.execute('''
+            UPDATE citas 
+            SET nombre = ?, servicio = ?, telefono = ?, peluquero_id = ?
+            WHERE id = ?
+        ''', (nombre, servicio, telefono, peluquero_id, cita_id))
+        
+        conn.commit()
+        conn.close()
+        
+        if c.rowcount > 0:
+            return jsonify({'success': True, 'msg': 'Cita actualizada correctamente'})
+        else:
+            return jsonify({'success': False, 'msg': 'No se encontró la cita'})
+    except Exception as e:
+        return jsonify({'success': False, 'msg': str(e)})
+
+@app.route('/borrar_cita', methods=['POST'])
+def borrar_cita():
+    data = request.get_json()
+    cita_id = data.get('id')
+    
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute('DELETE FROM citas WHERE id = ?', (cita_id,))
         conn.commit()
         conn.close()
         

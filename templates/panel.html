@@ -98,150 +98,35 @@
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(139, 69, 19, 0.4);
             background: linear-gradient(135deg, #b8860b 0%, #8B4513 100%);
-            color: #f5f5dc;
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #90caf9 0%, #2196f3 100%);
+            border-color: #1976d2;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+            box-shadow: 0 8px 25px rgba(33, 150, 243, 0.4);
         }
 
         .btn-danger {
-            background: linear-gradient(135deg, #8B0000 0%, #654321 100%);
-            color: #f5f5dc;
-            border: 2px solid #8B0000;
+            background: linear-gradient(135deg, #ef5350 0%, #d32f2f 100%);
+            border-color: #c62828;
+            box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3);
         }
 
         .btn-danger:hover {
-            background: linear-gradient(135deg, #654321 0%, #8B0000 100%);
-            box-shadow: 0 8px 25px rgba(139, 0, 0, 0.4);
+            background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
+            box-shadow: 0 8px 25px rgba(211, 47, 47, 0.4);
         }
 
-        .btn-success {
-            background: linear-gradient(135deg, #228B22 0%, #006400 100%);
-            color: #f5f5dc;
-            border: 2px solid #228B22;
-        }
-
-        .btn-success:hover {
-            background: linear-gradient(135deg, #006400 0%, #228B22 100%);
-            box-shadow: 0 8px 25px rgba(34, 139, 34, 0.4);
-        }
-
-        .calendar-container {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            overflow-x: auto;
-            max-width: 100%;
-        }
-
-        .calendar-table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 800px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            overflow: hidden;
-        }
-
-        .calendar-table th,
-        .calendar-table td {
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 12px;
-            text-align: center;
-            vertical-align: top;
-            min-width: 120px;
-        }
-
-        .calendar-table th {
-            background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
-            color: #f5f5dc;
-            font-weight: 700;
-            font-family: 'Georgia', serif;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .calendar-table th:first-child {
-            background: linear-gradient(135deg, #654321 0%, #8B4513 100%);
-            min-width: 80px;
-        }
-
-        .time-slot {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            margin: 2px 0;
-            padding: 8px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            font-family: 'Georgia', serif;
-        }
-
-        .time-slot:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.02);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .time-slot.booked {
-            background: linear-gradient(135deg, #8B0000 0%, #654321 100%);
-            color: #f5f5dc;
-            border: 1px solid #8B0000;
-        }
-
-        .time-slot.available {
-            background: linear-gradient(135deg, #228B22 0%, #006400 100%);
-            color: #f5f5dc;
-            border: 1px solid #228B22;
-        }
-
-        .cita-info {
-            font-size: 11px;
-            margin-top: 5px;
-            font-family: 'Georgia', serif;
-        }
-
-        .cita-nombre {
-            font-weight: bold;
-            display: block;
-            color: #f5f5dc;
-        }
-
-        .cita-telefono {
-            color: #d4a574;
-            font-size: 10px;
-        }
-
-        .cita-servicio {
-            color: #b8860b;
-            font-size: 10px;
-            font-style: italic;
-        }
-
-        .cita-peluquero {
-            color: #d4a574;
-            font-size: 10px;
-            font-weight: bold;
-        }
-
-        .opciones {
-            margin-top: 8px;
-        }
-
-        .btn-opcion {
-            padding: 4px 8px;
-            font-size: 10px;
-            margin: 2px;
-            border-radius: 4px;
-            font-family: 'Georgia', serif;
-            font-weight: 600;
-        }
-
-        .stats {
+        .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
@@ -249,103 +134,383 @@
         }
 
         .stat-card {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
             border-radius: 15px;
             text-align: center;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
         }
 
         .stat-number {
-            font-size: 2.5em;
+            font-size: 32px;
             font-weight: bold;
-            background: linear-gradient(135deg, #d4a574 0%, #b8860b 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 8px;
-            font-family: 'Georgia', serif;
+            color: #d4a574;
+            margin-bottom: 5px;
         }
 
         .stat-label {
-            color: #f5f5dc;
-            font-size: 0.9em;
-            font-family: 'Georgia', serif;
+            color: #fff;
+            font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+
+        .calendar-container {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-x: auto;
+        }
+
+        .calendar-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .calendar-table th {
+            background: rgba(139, 69, 19, 0.8);
+            color: #fff;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .calendar-table td {
+            padding: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            vertical-align: top;
+            min-height: 80px;
+        }
+
+        .time-slot {
+            padding: 8px;
+            border-radius: 8px;
+            margin: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .time-slot.available {
+            background: rgba(76, 175, 80, 0.8);
+            color: #fff;
+        }
+
+        .time-slot.available:hover {
+            background: rgba(76, 175, 80, 1);
+            transform: scale(1.05);
+        }
+
+        .time-slot.booked {
+            background: rgba(244, 67, 54, 0.8);
+            color: #fff;
+            cursor: default;
+        }
+
+        .time-slot.closed {
+            background: rgba(158, 158, 158, 0.8);
+            color: #fff;
+            cursor: not-allowed;
+        }
+
+        .time-slot.festivo {
+            background: rgba(255, 193, 7, 0.8);
+            color: #000;
+            cursor: not-allowed;
+        }
+
+        .time-slot.domingo {
+            background: rgba(156, 39, 176, 0.8);
+            color: #fff;
+            cursor: not-allowed;
+        }
+
+        .cita-info {
+            margin-bottom: 5px;
+        }
+
+        .cita-nombre {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .cita-telefono {
+            font-size: 11px;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .cita-servicio {
+            font-size: 11px;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .cita-peluquero {
+            font-size: 11px;
+            display: block;
+            font-style: italic;
+        }
+
+        .opciones {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            margin-top: 5px;
+        }
+
+        .btn-opcion {
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        .filtro-peluquero {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .filtro-peluquero select {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #8B4513;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #2c1810;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .filtro-peluquero label {
+            color: #fff;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .error {
+            background: rgba(244, 67, 54, 0.8);
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading {
+            text-align: center;
+            color: #fff;
+            padding: 20px;
+            font-style: italic;
         }
 
         .modal {
             display: none;
             position: fixed;
-            top: 0;
+            z-index: 1000;
             left: 0;
+            top: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
         }
 
         .modal-content {
+            background: rgba(255, 255, 255, 0.95);
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, #d4a574 0%, #b8860b 100%);
             padding: 30px;
             border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            max-width: 500px;
             width: 90%;
-            border: 2px solid #8B4513;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
-        .modal h2 {
-            margin-bottom: 20px;
+        .modal h3 {
             color: #2c1810;
-            font-family: 'Georgia', serif;
-            text-align: center;
-        }
-
-        .modal p {
-            color: #2c1810;
-            font-family: 'Georgia', serif;
-            text-align: center;
             margin-bottom: 20px;
+            font-size: 24px;
         }
 
         .modal-buttons {
             display: flex;
-            gap: 15px;
             justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
         }
 
-        .loading {
-            text-align: center;
-            padding: 30px;
-            color: #f5f5dc;
-            font-family: 'Georgia', serif;
-            font-size: 18px;
+        /* Estilos para el modal de agregar cita */
+        #modal-agregar-cita .modal-content {
+            max-width: 600px;
+            text-align: left;
         }
 
-        .error {
-            background: linear-gradient(135deg, #8B0000 0%, #654321 100%);
-            color: #f5f5dc;
-            padding: 15px;
+        #modal-agregar-cita label {
+            display: block;
+            font-weight: bold;
+            color: #2c1810;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        #modal-agregar-cita input,
+        #modal-agregar-cita select {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0 15px 0;
+            border: 2px solid #ddd;
             border-radius: 8px;
-            margin: 15px 0;
-            font-family: 'Georgia', serif;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: #fff;
         }
 
-        .success {
-            background: linear-gradient(135deg, #228B22 0%, #006400 100%);
-            color: #f5f5dc;
-            padding: 15px;
+        #modal-agregar-cita input:focus,
+        #modal-agregar-cita select:focus {
+            outline: none;
+            border-color: #8B4513;
+            box-shadow: 0 0 8px rgba(139, 69, 19, 0.3);
+            transform: translateY(-1px);
+        }
+
+        #modal-agregar-cita .form-group {
+            margin-bottom: 20px;
+        }
+
+        #modal-agregar-cita .modal-buttons {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        /* Estilos para el modal de editar cita */
+        #modal-editar-cita .modal-content {
+            max-width: 600px;
+            text-align: left;
+        }
+
+        #modal-editar-cita label {
+            display: block;
+            font-weight: bold;
+            color: #2c1810;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        #modal-editar-cita input,
+        #modal-editar-cita select {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0 15px 0;
+            border: 2px solid #ddd;
             border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+
+        #modal-editar-cita input:focus,
+        #modal-editar-cita select:focus {
+            outline: none;
+            border-color: #8B4513;
+            box-shadow: 0 0 8px rgba(139, 69, 19, 0.3);
+            transform: translateY(-1px);
+        }
+
+        #modal-editar-cita .form-group {
+            margin-bottom: 20px;
+        }
+
+        #modal-editar-cita .modal-buttons {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        /* Estilos para botones del modal de cita */
+        .btn-whatsapp {
+            background: linear-gradient(135deg, #25d366 0%, #128c7e 100%) !important;
+            border-color: #128c7e !important;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3) !important;
+        }
+
+        .btn-whatsapp:hover {
+            background: linear-gradient(135deg, #128c7e 0%, #075e54 100%) !important;
+            box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4) !important;
+        }
+
+        .btn-llamar {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+            border-color: #0056b3 !important;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3) !important;
+        }
+
+        .btn-llamar:hover {
+            background: linear-gradient(135deg, #0056b3 0%, #004085 100%) !important;
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4) !important;
+        }
+
+        /* Estilos para el modal de cita */
+        #modal-cita .modal-content {
+            max-width: 500px;
+        }
+
+        .cita-detalle {
+            background: rgba(139, 69, 19, 0.05);
+            padding: 20px;
+            border-radius: 12px;
             margin: 15px 0;
-            font-family: 'Georgia', serif;
+            border-left: 4px solid #8B4513;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .cita-detalle:hover {
+            background: rgba(139, 69, 19, 0.08);
+            transform: translateX(5px);
+        }
+
+        .cita-detalle strong {
+            color: #8B4513;
+            display: inline-block;
+            width: 100px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .cita-detalle span {
+            color: #2c1810;
+            font-weight: 500;
         }
 
         @media (max-width: 768px) {
@@ -354,18 +519,21 @@
                 align-items: stretch;
             }
             
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
             .calendar-container {
                 padding: 15px;
             }
             
             .calendar-table {
-                min-width: 600px;
+                font-size: 12px;
             }
             
             .calendar-table th,
             .calendar-table td {
-                min-width: 100px;
-                padding: 8px;
+                padding: 5px;
             }
         }
     </style>
@@ -373,24 +541,33 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🤠 Panel de Administración - Barbería del Oeste</h1>
+            <h1>Panel de Administración</h1>
             <div class="controls">
                 <div>
-                    <button class="btn" onclick="cargarCalendario()">🔄 Actualizar</button>
-                    <a href="/" class="btn btn-success">🏠 Inicio</a>
-                    <a href="/configuracion" class="btn">⚙️ Configuración</a>
+                    <button class="btn" onclick="semanaAnterior()">◀ Semana Anterior</button>
+                    <button class="btn" onclick="irAHoy()">📅 Hoy</button>
+                    <button class="btn" onclick="semanaSiguiente()">Semana Siguiente ▶</button>
                 </div>
                 <div>
-                    <button class="btn btn-success" onclick="generarCitasPrueba()">📅 Generar Citas de Prueba</button>
-                    <button class="btn btn-danger" onclick="limpiarCitas()">🗑️ Limpiar Todas las Citas</button>
+                    <button class="btn btn-secondary" onclick="window.location.href='/configuracion'">⚙️ Configuración</button>
+                    <button class="btn" onclick="cargarCalendario()">🔄 Actualizar</button>
                 </div>
             </div>
         </div>
 
-        <div class="stats" id="stats">
+        <!-- Filtro por peluquero -->
+        <div class="filtro-peluquero">
+            <label for="filtro-peluquero">Filtrar por peluquero:</label>
+            <select id="filtro-peluquero" onchange="cambiarPeluquero()">
+                <option value="">Todos los peluqueros</option>
+            </select>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-number" id="total-citas">0</div>
-                <div class="stat-label">Total de Citas</div>
+                <div class="stat-label">Total Citas</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="citas-hoy">0</div>
@@ -406,6 +583,7 @@
             </div>
         </div>
 
+        <!-- Calendario -->
         <div class="calendar-container">
             <div id="calendario-semanal">
                 <div class="loading">Cargando calendario...</div>
@@ -413,30 +591,71 @@
         </div>
     </div>
 
-    <!-- Modal de confirmación -->
+    <!-- Modal de confirmación para eliminar -->
     <div id="modal-eliminar" class="modal">
         <div class="modal-content">
-            <h2>⚠️ Confirmar Eliminación</h2>
-            <p>¿Estás seguro de que quieres eliminar esta cita?</p>
+            <h3>¿Eliminar cita?</h3>
+            <p>Esta acción no se puede deshacer.</p>
             <div class="modal-buttons">
-                <button class="btn btn-danger" onclick="confirmarEliminar()">Sí, Eliminar</button>
-                <button class="btn" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn btn-danger" onclick="confirmarEliminar()">Eliminar</button>
+                <button class="btn" onclick="cancelarEliminar()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de detalles de cita -->
+    <div id="modal-cita" class="modal">
+        <div class="modal-content">
+            <h3>Detalles de la Cita</h3>
+            <div id="cita-detalles">
+                <!-- Los detalles se cargan dinámicamente -->
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-danger" onclick="eliminarCitaDesdeModal()">🗑️ Eliminar</button>
+                <button class="btn" onclick="editarCitaDesdeModal()">✏️ Editar</button>
+                <button class="btn btn-whatsapp" onclick="enviarWhatsApp()">📱 WhatsApp</button>
+                <button class="btn btn-llamar" onclick="llamarCliente()">📞 Llamar</button>
+                <button class="btn" onclick="cerrarModalCita()">Cerrar</button>
             </div>
         </div>
     </div>
 
     <script>
-        let citaAEliminar = null;
         let semanaActual = new Date();
+        let peluqueroSeleccionado = null;
+        let citaAEliminar = null;
 
-        // Función para formatear fecha
-        function formatearFecha(fecha) {
-            const opciones = { 
-                weekday: 'short', 
-                month: 'short', 
-                day: 'numeric' 
-            };
-            return fecha.toLocaleDateString('es-ES', opciones);
+        // Cargar peluqueros al iniciar
+        cargarPeluqueros();
+
+        // Función para cargar peluqueros
+        async function cargarPeluqueros() {
+            try {
+                const response = await fetch('/obtener_peluqueros');
+                if (response.ok) {
+                    const data = await response.json();
+                    const select = document.getElementById('filtro-peluquero');
+                    
+                    // Limpiar opciones existentes excepto la primera
+                    select.innerHTML = '<option value="">Todos los peluqueros</option>';
+                    
+                    data.peluqueros.forEach(peluquero => {
+                        const option = document.createElement('option');
+                        option.value = peluquero.id;
+                        option.textContent = peluquero.nombre;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('❌ Error cargando peluqueros:', error);
+            }
+        }
+
+        // Función para cambiar peluquero
+        function cambiarPeluquero() {
+            peluqueroSeleccionado = document.getElementById('filtro-peluquero').value;
+            console.log(`🔄 Cambiando a peluquero: ${peluqueroSeleccionado || 'Todos'}`);
+            cargarCalendario();
         }
 
         // Función para obtener el lunes de la semana
@@ -448,22 +667,60 @@
             return lunes;
         }
 
-        // Función para generar días de la semana
-        function generarDiasSemana(lunes) {
+        // Función para generar días de la semana (hoy siempre a la izquierda)
+        function generarDiasSemana(hoy) {
             const dias = [];
             for (let i = 0; i < 7; i++) {
-                const dia = new Date(lunes);
-                dia.setDate(lunes.getDate() + i);
+                const dia = new Date(hoy);
+                dia.setDate(hoy.getDate() + i);
                 dias.push(dia);
             }
             return dias;
         }
 
+        // Función para verificar si un día está cerrado o es festivo
+        async function verificarDiaEspecial(fecha) {
+            try {
+                const response = await fetch('/debug_dias_cerrados');
+                if (response.ok) {
+                    const data = await response.json();
+                    const diasCerrados = data.dias_cerrados || [];
+                    
+                    // Verificar si es domingo
+                    const dia = new Date(fecha);
+                    if (dia.getDay() === 0) {
+                        return { tipo: 'domingo', motivo: 'Domingo' };
+                    }
+                    
+                    // Verificar si está cerrado
+                    const diaCerrado = diasCerrados.find(d => d.fecha === fecha);
+                    if (diaCerrado) {
+                        return { tipo: 'cerrado', motivo: diaCerrado.motivo };
+                    }
+                    
+                    // Verificar si es festivo
+                    const responseFestivos = await fetch('/obtener_dias_festivos');
+                    if (responseFestivos.ok) {
+                        const dataFestivos = await responseFestivos.json();
+                        const diasFestivos = dataFestivos.dias_festivos || [];
+                        const diaFestivo = diasFestivos.find(d => d.fecha === fecha);
+                        if (diaFestivo) {
+                            return { tipo: 'festivo', motivo: diaFestivo.nombre };
+                        }
+                    }
+                }
+                return null;
+            } catch (error) {
+                console.error('❌ Error verificando día especial:', error);
+                return null;
+            }
+        }
+
         // Función para cargar el calendario
         async function cargarCalendario() {
             try {
-                const lunes = obtenerLunesSemana(semanaActual);
-                const dias = generarDiasSemana(lunes);
+                // Usar semanaActual como punto de partida
+                const dias = generarDiasSemana(semanaActual);
                 
                 // Cargar horarios disponibles desde la BD
                 const response = await fetch('/obtener_horarios_disponibles');
@@ -533,14 +790,18 @@
         // Función para cargar citas de un día específico
         async function cargarCitasDia(fechaAPI, horas) {
             try {
-                console.log(`📅 Cargando citas para: ${fechaAPI}`);
+                console.log(`📅 Cargando citas para: ${fechaAPI} (Peluquero: ${peluqueroSeleccionado || 'Todos'})`);
                 
+                // Primero obtener las citas del día
                 const response = await fetch('/citas_dia', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ dia: fechaAPI })
+                    body: JSON.stringify({ 
+                        dia: fechaAPI,
+                        peluquero_id: peluqueroSeleccionado || null
+                    })
                 });
 
                 if (!response.ok) {
@@ -548,39 +809,57 @@
                 }
 
                 const data = await response.json();
-                console.log(`📊 Citas recibidas para ${fechaAPI}:`, data);
+                console.log(`📊 Citas recibidas para ${fechaAPI} (Peluquero: ${peluqueroSeleccionado || 'Todos'}):`, data);
                 
                 const citas = data.citas || [];
+                
+                // Verificar si el día es especial (cerrado, festivo, domingo)
+                const diaEspecial = await verificarDiaEspecial(fechaAPI);
+                
+                // Si hay citas existentes, NO mostrar como día especial
+                // (las citas tienen prioridad sobre el estado del día)
+                const tieneCitas = citas.length > 0;
                 
                 // Limpiar celdas del día
                 horas.forEach(hora => {
                     const celda = document.getElementById(`celda-${fechaAPI}-${hora}`);
                     if (celda) {
-                        celda.innerHTML = `<div class="time-slot available" onclick="agregarCita('${fechaAPI}', '${hora}')">
-                            <span>Disponible</span>
-                        </div>`;
-                    }
-                });
-                
-                // Mostrar citas existentes
-                citas.forEach(cita => {
-                    console.log(`📝 Procesando cita:`, cita);
-                    const celda = document.getElementById(`celda-${fechaAPI}-${cita.hora}`);
-                    if (celda) {
-                        celda.innerHTML = `
-                            <div class="time-slot booked">
+                        // Buscar si hay una cita en esta hora
+                        const citaEnHora = citas.find(c => c.hora === hora);
+                        
+                                                if (citaEnHora) {
+                            // Mostrar la cita existente
+                                                celda.innerHTML = `
+                            <div class="time-slot booked" onclick="mostrarModalCita(${citaEnHora.id}, '${citaEnHora.nombre || citaEnHora.cliente}', '${citaEnHora.telefono}', '${citaEnHora.servicio}', '${citaEnHora.peluquero_nombre || 'Sin asignar'}', '${fechaAPI}', '${citaEnHora.hora}')">
                                 <div class="cita-info">
-                                    <span class="cita-nombre">${cita.nombre || cita.cliente}</span>
-                                    <span class="cita-telefono">${cita.telefono}</span>
-                                    <span class="cita-servicio">${cita.servicio}</span>
-                                    <span class="cita-peluquero">👨‍💼 ${cita.peluquero_nombre || 'Sin asignar'}</span>
-                                </div>
-                                <div class="opciones">
-                                    <button class="btn btn-opcion btn-danger" onclick="eliminarCita(${cita.id})">🗑️</button>
-                                    <button class="btn btn-opcion" onclick="editarCita(${cita.id})">✏️</button>
+                                    <span class="cita-nombre">${citaEnHora.nombre || citaEnHora.cliente}</span>
+                                    <span class="cita-servicio">${citaEnHora.servicio}</span>
+                                    <span class="cita-peluquero">👨‍💼 ${citaEnHora.peluquero_nombre || 'Sin asignar'}</span>
                                 </div>
                             </div>
                         `;
+                        } else if (diaEspecial && !tieneCitas) {
+                            // Día especial sin citas: mostrar como cerrado/festivo/domingo
+                            let clase = 'closed';
+                            let texto = 'Cerrado';
+                            
+                            if (diaEspecial.tipo === 'festivo') {
+                                clase = 'festivo';
+                                texto = diaEspecial.motivo;
+                            } else if (diaEspecial.tipo === 'domingo') {
+                                clase = 'domingo';
+                                texto = 'Domingo';
+                            }
+                            
+                            celda.innerHTML = `<div class="time-slot ${clase}">
+                                <span>${texto}</span>
+                            </div>`;
+                        } else {
+                            // Día normal o día especial con citas: mostrar como disponible
+                            celda.innerHTML = `<div class="time-slot available" onclick="agregarCita('${fechaAPI}', '${hora}')">
+                                <span>Disponible</span>
+                            </div>`;
+                        }
                     }
                 });
                 
@@ -606,15 +885,92 @@
         }
 
         // Función para agregar cita
-        function agregarCita(fecha, hora) {
-            const nombre = prompt('Nombre del cliente:');
-            if (!nombre) return;
+        async function agregarCita(fecha, hora) {
+            // Verificar si el día está cerrado antes de permitir agregar cita
+            const diaEspecial = await verificarDiaEspecial(fecha);
+            if (diaEspecial) {
+                let mensaje = 'No se pueden agregar citas en días cerrados.';
+                if (diaEspecial.tipo === 'festivo') {
+                    mensaje = `No se pueden agregar citas en días festivos (${diaEspecial.motivo}).`;
+                } else if (diaEspecial.tipo === 'domingo') {
+                    mensaje = 'No se pueden agregar citas en domingos.';
+                }
+                alert(mensaje);
+                return;
+            }
             
-            const telefono = prompt('Teléfono del cliente:');
-            if (!telefono) return;
+            // Mostrar modal para agregar cita
+            mostrarModalAgregarCita(fecha, hora);
+        }
+
+        // Función para mostrar modal de agregar cita
+        async function mostrarModalAgregarCita(fecha, hora) {
+            // Cargar servicios y peluqueros
+            const [servicios, peluqueros] = await Promise.all([
+                fetch('/obtener_servicios').then(r => r.json()),
+                fetch('/obtener_peluqueros').then(r => r.json())
+            ]);
             
-            const servicio = prompt('Servicio:');
-            if (!servicio) return;
+            // Crear modal
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'modal-agregar-cita';
+            modal.style.display = 'block';
+            
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h3>Agregar Cita</h3>
+                    <p style="margin-bottom: 25px; color: #666; font-size: 14px;">
+                        <strong>Fecha:</strong> ${formatearFecha(new Date(fecha))} - <strong>Hora:</strong> ${hora}
+                    </p>
+                    
+                    <div class="form-group">
+                        <label for="nombre-cliente">Nombre del cliente:</label>
+                        <input type="text" id="nombre-cliente" placeholder="Nombre completo">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="telefono-cliente">Teléfono:</label>
+                        <input type="tel" id="telefono-cliente" placeholder="Teléfono">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="servicio-cita">Servicio:</label>
+                        <select id="servicio-cita">
+                            <option value="">Seleccionar servicio...</option>
+                            ${servicios.servicios ? servicios.servicios.map(s => `<option value="${s.nombre}">${s.nombre} - ${s.precio}</option>`).join('') : ''}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="peluquero-cita">Peluquero:</label>
+                        <select id="peluquero-cita">
+                            <option value="">Sin asignar</option>
+                            ${peluqueros.peluqueros ? peluqueros.peluqueros.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('') : ''}
+                        </select>
+                    </div>
+                    
+                    <div class="modal-buttons">
+                        <button class="btn" onclick="confirmarAgregarCita('${fecha}', '${hora}')">Agregar Cita</button>
+                        <button class="btn" onclick="cancelarAgregarCita()">Cancelar</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        // Función para confirmar agregar cita
+        function confirmarAgregarCita(fecha, hora) {
+            const nombre = document.getElementById('nombre-cliente').value.trim();
+            const telefono = document.getElementById('telefono-cliente').value.trim();
+            const servicio = document.getElementById('servicio-cita').value;
+            const peluqueroId = document.getElementById('peluquero-cita').value || null;
+            
+            if (!nombre || !telefono || !servicio) {
+                alert('Por favor completa todos los campos obligatorios');
+                return;
+            }
             
             fetch('/agregar_cita', {
                 method: 'POST',
@@ -626,21 +982,31 @@
                     hora: hora,
                     nombre: nombre,
                     telefono: telefono,
-                    servicio: servicio
+                    servicio: servicio,
+                    peluquero_id: peluqueroId
                 })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     cargarCalendario();
+                    cancelarAgregarCita();
                 } else {
-                    alert('Error al agregar la cita');
+                    alert('Error al agregar la cita: ' + (data.msg || 'Error desconocido'));
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 alert('Error al agregar la cita');
             });
+        }
+
+        // Función para cancelar agregar cita
+        function cancelarAgregarCita() {
+            const modal = document.getElementById('modal-agregar-cita');
+            if (modal) {
+                modal.remove();
+            }
         }
 
         // Función para eliminar cita
@@ -650,97 +1016,257 @@
         }
 
         // Función para confirmar eliminación
-        async function confirmarEliminar() {
-            if (!citaAEliminar) return;
-            
-            try {
-                const response = await fetch('/eliminar_cita', {
+        function confirmarEliminar() {
+            if (citaAEliminar) {
+                fetch('/borrar_cita', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ id: citaAEliminar })
-                });
-
-                if (response.ok) {
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
                     cargarCalendario();
-                    cerrarModal();
                 } else {
                     alert('Error al eliminar la cita');
                 }
-            } catch (error) {
+                })
+                .catch(error => {
                 console.error('Error:', error);
                 alert('Error al eliminar la cita');
+                });
             }
+            cancelarEliminar();
         }
 
-        // Función para cerrar modal
-        function cerrarModal() {
+        // Función para cancelar eliminación
+        function cancelarEliminar() {
             document.getElementById('modal-eliminar').style.display = 'none';
             citaAEliminar = null;
         }
 
-        // Función para editar cita
-        function editarCita(id) {
-            alert('Función de edición en desarrollo');
+        // Variables globales para el modal de cita
+        let citaActual = null;
+
+        // Función para mostrar modal de cita
+        function mostrarModalCita(id, nombre, telefono, servicio, peluquero, fecha, hora) {
+            citaActual = { id, nombre, telefono, servicio, peluquero, fecha, hora };
+            
+            const modal = document.getElementById('modal-cita');
+            const detalles = document.getElementById('cita-detalles');
+            
+            detalles.innerHTML = `
+                <div class="cita-detalle">
+                    <strong>Cliente:</strong> <span>${nombre}</span>
+                </div>
+                <div class="cita-detalle">
+                    <strong>Teléfono:</strong> <span>${telefono}</span>
+                </div>
+                <div class="cita-detalle">
+                    <strong>Servicio:</strong> <span>${servicio}</span>
+                </div>
+                <div class="cita-detalle">
+                    <strong>Peluquero:</strong> <span>${peluquero}</span>
+                </div>
+                <div class="cita-detalle">
+                    <strong>Fecha:</strong> <span>${formatearFecha(new Date(fecha))}</span>
+                </div>
+                <div class="cita-detalle">
+                    <strong>Hora:</strong> <span>${hora}</span>
+                </div>
+            `;
+            
+            modal.style.display = 'block';
         }
 
-        // Función para generar citas de prueba
-        async function generarCitasPrueba() {
-            try {
-                const response = await fetch('/generar_citas_prueba', {
-                    method: 'POST'
-                });
-                
-                if (response.ok) {
-                    cargarCalendario();
-                } else {
-                    alert('Error al generar citas de prueba');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al generar citas de prueba');
+        // Función para cerrar modal de cita
+        function cerrarModalCita() {
+            const modal = document.getElementById('modal-cita');
+            modal.style.display = 'none';
+            citaActual = null;
+        }
+
+        // Función para eliminar cita desde modal
+        function eliminarCitaDesdeModal() {
+            if (citaActual) {
+                citaAEliminar = citaActual.id;
+                cerrarModalCita();
+                document.getElementById('modal-eliminar').style.display = 'block';
             }
         }
 
-        // Función para limpiar todas las citas
-        async function limpiarCitas() {
-            if (!confirm('¿Estás seguro de que quieres eliminar TODAS las citas?')) {
+        // Función para editar cita desde modal
+        function editarCitaDesdeModal() {
+            if (citaActual) {
+                mostrarModalEditarCita();
+            }
+        }
+
+        // Función para mostrar modal de editar cita
+        async function mostrarModalEditarCita() {
+            // Cargar servicios y peluqueros
+            const [servicios, peluqueros] = await Promise.all([
+                fetch('/obtener_servicios').then(r => r.json()),
+                fetch('/obtener_peluqueros').then(r => r.json())
+            ]);
+            
+            // Crear modal
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'modal-editar-cita';
+            modal.style.display = 'block';
+            
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h3>Editar Cita</h3>
+                    <p style="margin-bottom: 25px; color: #666; font-size: 14px;">
+                        <strong>Fecha:</strong> ${formatearFecha(new Date(citaActual.fecha))} - <strong>Hora:</strong> ${citaActual.hora}
+                    </p>
+                    
+                    <div class="form-group">
+                        <label for="edit-nombre-cliente">Nombre del cliente:</label>
+                        <input type="text" id="edit-nombre-cliente" value="${citaActual.nombre}" placeholder="Nombre completo">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-telefono-cliente">Teléfono:</label>
+                        <input type="tel" id="edit-telefono-cliente" value="${citaActual.telefono}" placeholder="Teléfono">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-servicio-cita">Servicio:</label>
+                        <select id="edit-servicio-cita">
+                            <option value="">Seleccionar servicio...</option>
+                            ${servicios.servicios ? servicios.servicios.map(s => `<option value="${s.nombre}" ${s.nombre === citaActual.servicio ? 'selected' : ''}>${s.nombre} - ${s.precio}</option>`).join('') : ''}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-peluquero-cita">Peluquero:</label>
+                        <select id="edit-peluquero-cita">
+                            <option value="">Sin asignar</option>
+                            ${peluqueros.peluqueros ? peluqueros.peluqueros.map(p => `<option value="${p.id}" ${p.nombre === citaActual.peluquero ? 'selected' : ''}>${p.nombre}</option>`).join('') : ''}
+                        </select>
+                    </div>
+                    
+                    <div class="modal-buttons">
+                        <button class="btn" onclick="confirmarEditarCita()">Guardar Cambios</button>
+                        <button class="btn" onclick="cancelarEditarCita()">Cancelar</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            cerrarModalCita();
+        }
+
+        // Función para confirmar editar cita
+        function confirmarEditarCita() {
+            const nombre = document.getElementById('edit-nombre-cliente').value.trim();
+            const telefono = document.getElementById('edit-telefono-cliente').value.trim();
+            const servicio = document.getElementById('edit-servicio-cita').value;
+            const peluqueroId = document.getElementById('edit-peluquero-cita').value || null;
+            
+            if (!nombre || !telefono || !servicio) {
+                alert('Por favor completa todos los campos obligatorios');
                 return;
             }
             
-            try {
-                const response = await fetch('/limpiar_citas', {
-                    method: 'POST'
-                });
-                
-                if (response.ok) {
+            fetch('/editar_cita', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id: citaActual.id,
+                    nombre: nombre,
+                    telefono: telefono,
+                    servicio: servicio,
+                    peluquero_id: peluqueroId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
                     cargarCalendario();
+                    cancelarEditarCita();
                 } else {
-                    alert('Error al limpiar las citas');
+                    alert('Error al editar la cita: ' + (data.msg || 'Error desconocido'));
                 }
-            } catch (error) {
+            })
+            .catch(error => {
                 console.error('Error:', error);
-                alert('Error al limpiar las citas');
+                alert('Error al editar la cita');
+            });
+        }
+
+        // Función para cancelar editar cita
+        function cancelarEditarCita() {
+            const modal = document.getElementById('modal-editar-cita');
+            if (modal) {
+                modal.remove();
             }
         }
 
+        // Función para enviar WhatsApp
+        function enviarWhatsApp() {
+            if (citaActual) {
+                const telefono = citaActual.telefono.replace(/\s/g, '');
+                const mensaje = `Hola ${citaActual.nombre}, te recordamos tu cita para ${citaActual.servicio} el ${formatearFecha(new Date(citaActual.fecha))} a las ${citaActual.hora}. ¿Confirmas asistencia?`;
+                const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
+                window.open(url, '_blank');
+            }
+        }
+
+        // Función para llamar al cliente
+        function llamarCliente() {
+            if (citaActual) {
+                const telefono = citaActual.telefono.replace(/\s/g, '');
+                window.open(`tel:${telefono}`, '_blank');
+            }
+        }
+
+        // Función para editar cita (mantener para compatibilidad)
+        function editarCita(id) {
+            // Implementar edición de cita
+            alert('Función de edición en desarrollo');
+        }
+
+        // Función para formatear fecha
+        function formatearFecha(fecha) {
+            const opciones = { 
+                weekday: 'short', 
+                day: 'numeric', 
+                month: 'short' 
+            };
+            return fecha.toLocaleDateString('es-ES', opciones);
+        }
+
+                // Función para semana anterior
+        function semanaAnterior() {
+            semanaActual.setDate(semanaActual.getDate() - 7);
+            cargarCalendario();
+        }
+
+        // Función para semana siguiente
+        function semanaSiguiente() {
+            semanaActual.setDate(semanaActual.getDate() + 7);
+                    cargarCalendario();
+        }
+
+        // Función para ir a hoy
+        function irAHoy() {
+            semanaActual = new Date();
+            cargarCalendario();
+        }
+
         // Cargar calendario al iniciar
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Iniciando panel de administración...');
             cargarCalendario();
             
             // Actualizar cada 30 segundos
             setInterval(cargarCalendario, 30000);
-        });
-
-        // Cerrar modal al hacer clic fuera
-        window.onclick = function(event) {
-            const modal = document.getElementById('modal-eliminar');
-            if (event.target === modal) {
-                cerrarModal();
-            }
-        }
     </script>
 </body>
 </html> 
