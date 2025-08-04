@@ -459,6 +459,20 @@
                 const lunes = obtenerLunesSemana(semanaActual);
                 const dias = generarDiasSemana(lunes);
                 
+                // Cargar horarios disponibles desde la BD
+                const response = await fetch('/obtener_horarios_disponibles');
+                if (!response.ok) {
+                    throw new Error('Error cargando horarios');
+                }
+                const data = await response.json();
+                const horas = data.horarios || [];
+                
+                if (horas.length === 0) {
+                    document.getElementById('calendario-semanal').innerHTML = 
+                        '<div class="error">No hay horarios configurados. Ve a Configuración para agregar horarios.</div>';
+                    return;
+                }
+                
                 let html = '<table class="calendar-table">';
                 
                 // Encabezados de días
@@ -470,12 +484,6 @@
                 
                 // Cuerpo de la tabla
                 html += '<tbody>';
-                
-                // Horarios disponibles (de 9:00 a 19:00)
-                const horas = [];
-                for (let i = 9; i <= 19; i++) {
-                    horas.push(`${i.toString().padStart(2, '0')}:00`);
-                }
                 
                 horas.forEach(hora => {
                     html += '<tr>';
@@ -498,7 +506,7 @@
                 document.getElementById('calendario-semanal').innerHTML = html;
                 
                 // Cargar citas para cada día
-                await cargarCitasSemana(dias);
+                await cargarCitasSemana(dias, horas);
                 await cargarEstadisticas();
                 
             } catch (error) {
@@ -509,15 +517,15 @@
         }
 
         // Función para cargar citas de la semana
-        async function cargarCitasSemana(dias) {
+        async function cargarCitasSemana(dias, horas) {
             for (const dia of dias) {
                 const fechaAPI = dia.toISOString().split('T')[0];
-                await cargarCitasDia(fechaAPI);
+                await cargarCitasDia(fechaAPI, horas);
             }
         }
 
         // Función para cargar citas de un día específico
-        async function cargarCitasDia(fechaAPI) {
+        async function cargarCitasDia(fechaAPI, horas) {
             try {
                 console.log(`📅 Cargando citas para: ${fechaAPI}`);
                 
@@ -539,11 +547,6 @@
                 const citas = data.citas || [];
                 
                 // Limpiar celdas del día
-                const horas = [];
-                for (let i = 9; i <= 19; i++) {
-                    horas.push(`${i.toString().padStart(2, '0')}:00`);
-                }
-                
                 horas.forEach(hora => {
                     const celda = document.getElementById(`celda-${fechaAPI}-${hora}`);
                     if (celda) {
