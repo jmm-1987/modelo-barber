@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot Burbuja</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      /* Fondo con imagen local */
+      background: url('/static/fondo.png') no-repeat center center fixed;
+      background-size: cover;
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(40,40,50,0.30); /* Oscurecimiento neutro */
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    #chat-widget {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 350px;
+      height: 500px;
+      background: linear-gradient(rgba(255,255,255,0.15), rgba(255,255,255,0.15)),
+        url('/static/fondo.png') center center/cover no-repeat;
+      border: 2px solid #bdbdbd; /* gris claro */
+      border-radius: 18px;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 9999;
+      box-shadow: 0 5px 20px rgba(40,40,50,0.10), 0 2px 8px rgba(0,0,0,0.08);
+      backdrop-filter: blur(8px);
+    }
+
+    #chat-header {
+      background: linear-gradient(90deg, #bdbdbd 0%, #90caf9 100%); /* gris a azul claro */
+      color: #fff;
+      padding: 18px;
+      font-weight: bold;
+      text-align: center;
+      font-size: 20px;
+      letter-spacing: 1px;
+      border-bottom: 2px solid #e3e3e3;
+    }
+
+    #chat-body {
+      flex-grow: 1;
+      padding: 14px;
+      padding-top: 60px;
+      overflow-y: auto;
+      height: 100%;
+      color: #263238;
+      background: transparent;
+      padding-top: 20px;
+    }
+
+    #chat-input {
+      display: flex;
+      border-top: 1.5px solid #f8bbd0;
+      background: #fce4ec;
+    }
+
+    #chat-input input {
+      flex-grow: 1;
+      border: none;
+      padding: 12px;
+      font-size: 15px;
+      background: #fff;
+      color: #7b1fa2;
+      border-radius: 0 0 0 12px;
+    }
+
+    #chat-input button {
+      background: linear-gradient(90deg, #f8bbd0 0%, #ce93d8 100%);
+      color: #fff;
+      border: none;
+      padding: 12px 18px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 0 0 12px 0;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(233, 30, 99, 0.10);
+      transition: background 0.2s;
+    }
+    #chat-input button:hover {
+      background: #ba68c8;
+    }
+
+    #chat-body button {
+      background: linear-gradient(90deg, #e3e3e3 0%, #90caf9 100%);
+      border: 1.5px solid #bdbdbd;
+      color: #263238;
+      margin: 5px 5px 0 0;
+      padding: 9px 16px;
+      border-radius: 22px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 2px 6px rgba(40,40,50,0.10);
+      transition: all 0.2s ease;
+    }
+    #chat-body button:hover {
+      background: #90caf9;
+      color: #fff;
+      border-color: #bdbdbd;
+    }
+
+    #chat-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #bdbdbd 0%, #90caf9 100%);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      font-size: 30px;
+      cursor: pointer;
+      z-index: 10000;
+      box-shadow: 0 0 10px #bdbdbd, 0 2px 8px rgba(0,0,0,0.08);
+      transition: background 0.2s;
+      border: 2px solid #e3e3e3;
+    }
+    #chat-toggle:hover {
+      background: #90caf9;
+    }
+
+    #chat-callout {
+      position: fixed;
+      bottom: 95px;
+      right: 20px;
+      background: #e3e3e3;
+      color: #263238;
+      padding: 10px 18px;
+      border-radius: 18px;
+      box-shadow: 0 4px 12px rgba(40,40,50,0.10);
+      z-index: 9998;
+      display: none;
+      animation: callout-fade-in 0.5s ease;
+      font-weight: 500;
+      border: 1.5px solid #bdbdbd;
+    }
+    #chat-callout::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      right: 22px;
+      border-width: 8px;
+      border-style: solid;
+      border-color: #e3e3e3 transparent transparent transparent;
+    }
+
+    @keyframes callout-fade-in {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* --- RESPONSIVE: Chatbot a pantalla completa en móvil --- */
+    @media (max-width: 600px) {
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        /* Fondo responsivo en móvil */
+        background: url('/static/fondo.png') no-repeat center center fixed;
+        background-size: cover;
+      }
+      #chat-widget {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        max-width: 100vw;
+        max-height: 100vh;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        z-index: 9999;
+        display: flex !important;
+        flex-direction: column;
+        background: linear-gradient(rgba(255,255,255,0.15), rgba(255,255,255,0.15)),
+          url('/static/fondo.png') center center/cover no-repeat;
+        backdrop-filter: blur(10px);
+      }
+      #chat-header {
+        font-size: 16px;
+        padding: 12px;
+      }
+      #chat-body {
+        padding: 8px;
+        font-size: 15px;
+      }
+      #chat-input input {
+        font-size: 15px;
+        padding: 12px 8px;
+      }
+      #chat-input button {
+        font-size: 16px;
+        padding: 12px 10px;
+      }
+      #chat-toggle, #chat-callout {
+        display: none !important;
+      }
+      #chat-callout {
+        font-size: 15px;
+        padding: 8px 10px;
+      }
+    }
+    .icono-reloj {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    
+    /* Estilos para el header */
+    .header-text {
+      font-family: 'Oswald', Arial, sans-serif;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 400;
+      text-align: right;
+      margin: 20px 0;
+      padding-right: 20px;
+      width: 33.33%;
+      float: right;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    
+    /* Estilos para el mensaje de bienvenida */
+    .welcome-message {
+      font-family: 'Arial', sans-serif;
+      color: #fff;
+      font-size: 24px;
+      font-weight: bold;
+      text-align: left;
+      margin: 40px 0 30px 0;
+      line-height: 1.3;
+      padding-left: 20px;
+      width: 66.67%;
+      float: left;
+    }
+    
+    /* Contenedor para el header y mensaje */
+    .header-container {
+      display: flex;
+      width: 100%;
+      clear: both;
+    }
+    
+    /* Estilos para los botones */
+    .opcion-animada {
+      cursor: pointer;
+      width: 140px;
+      height: 140px;
+      text-align: center;
+      background: transparent;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 0;
+      transition: transform 0.2s;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .icono-animado {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .opcion-texto {
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 15px;
+      color: #fff;
+      font-weight: bold;
+      line-height: 1.2;
+      text-align: center;
+      padding: 14px 8px 12px 8px;
+      width: 100%;
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      border-bottom-left-radius: 16px;
+      border-bottom-right-radius: 16px;
+      z-index: 2;
+      letter-spacing: 0.5px;
+      background: none;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.55), 0 1px 0 #fff;
+    }
+    
+    .boton-imagen {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 16px;
+    }
+    
+    /* Grid de botones */
+    .botones-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      padding: 0 30px;
+      margin-top: 20px;
+      justify-items: center;
+      max-width: 320px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .header-fixed {
+      position: fixed;
+      top: 18px;
+      right: 24px;
+      font-family: 'Oswald', Arial, sans-serif;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      z-index: 10000;
+      pointer-events: none;
+      text-align: right;
+      background: linear-gradient(rgba(255,255,255,0.15), rgba(255,255,255,0.15)),
+        url('/static/fondo.png') center center/cover no-repeat;
+      padding: 8px 16px;
+      border-radius: 8px;
+      backdrop-filter: blur(8px);
+    }
+    
+
+    #chat-widget {
+      position: relative;
+    }
+    /* Ajustes para móvil */
+    @media (max-width: 600px) {
+      #scroll-arrow {
+        right: 20px !important;
+        bottom: 40px !important;
+        width: 50px !important;
+        height: 50px !important;
+      }
+      #scroll-arrow svg {
+        width: 50px !important;
+        height: 50px !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Botón flotante -->
+  <button id="chat-toggle">💬</button>
+  <div id="chat-callout">¿Necesitas ayuda?</div>
+
+  <!-- Widget del chatbot -->
+  <div id="chat-widget">
+    <div class="header-fixed">SCARLETT & ISABELLA</div>
+    <div id="chat-body"></div>
+    <!-- Eliminado el input y el botón de enviar -->
+    <!-- <div id="chat-input">
+      <input id="input" type="text" placeholder="Escribe un mensaje..." />
+      <button onclick="sendMessage()">➤</button>
+    </div> -->
+  </div>
+
+  <script>
+    const chat      = document.getElementById("chat-body");
+    const input     = document.getElementById("input");
+    const toggleBtn = document.getElementById("chat-toggle");
+    const widget    = document.getElementById("chat-widget");
+    const callout   = document.getElementById("chat-callout");
+    const API_URL   = "/chat";
+
+    // Variables para el flujo de reserva
+    let reserva = {
+      servicio: null,
+      dia: null,
+      hora: null,
+      nombre: null,
+      telefono: null
+    };
+    let esperandoDia = false;
+    let esperandoHora = false;
+    let esperandoNombre = false;
+    let ultimaCita = null;
+    let esperandoTelefono = false;
+
+    // Mostrar bocadillo proactivo tras 3 segundos
+    setTimeout(() => {
+      if (widget.style.display !== 'flex') {
+        callout.style.display = 'block';
+      }
+    }, 3000);
+
+    // Mostrar/Ocultar Chat
+    toggleBtn.onclick = () => {
+      callout.style.display = 'none';
+      widget.style.display = "flex";
+      toggleBtn.style.display = "none";
+      if(chat.children.length === 0) {
+        mostrarOpcionesPrincipales();
+      }
+    };
+
+    // --- NUEVO: Manejo de historial para botón físico de volver ---
+    function pushState(pantalla) {
+      history.pushState({pantalla}, '');
+    }
+    window.addEventListener('popstate', function(e) {
+      if (e.state && e.state.pantalla) {
+        if (e.state.pantalla === 'menu') {
+          mostrarOpcionesPrincipales(false);
+        } else if (e.state.pantalla === 'servicios') {
+          mostrarServicios();
+        } else if (e.state.pantalla === 'calendario') {
+          chat.innerHTML = `<p><strong>Selecciona un día:</strong></p><div id='calendario-dias'><em>Cargando calendario...</em></div>`;
+          fetch('/proximos_dias_disponibles').then(r=>r.json()).then(data=>renderCalendarioDias(data.dias));
+        }
+        // Puedes añadir más pantallas según el flujo
+      }
+    });
+    // --- FIN historial ---
+
+    // Función para mostrar flecha de scroll solo en secciones específicas
+    function mostrarFlechaScroll() {
+      if (!document.getElementById('scroll-arrow')) {
+        const arrow = document.createElement('div');
+        arrow.id = 'scroll-arrow';
+        arrow.innerHTML = `<svg width='38' height='38' viewBox='0 0 38 38'><circle cx='19' cy='19' r='19' fill='#90caf9' opacity='0.85'/><polyline points='12,16 19,25 26,16' fill='none' stroke='#1565c0' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/></svg>`;
+        arrow.style.position = 'absolute';
+        arrow.style.right = '20px';
+        arrow.style.bottom = '30px';
+        arrow.style.zIndex = '9999';
+        arrow.style.cursor = 'pointer';
+        arrow.style.animation = 'arrow-bounce 1.2s infinite';
+        arrow.style.display = 'none';
+        document.getElementById('chat-widget').appendChild(arrow);
+        const style = document.createElement('style');
+        style.innerHTML = `@keyframes arrow-bounce { 0%,100%{transform:translateY(0);} 50%{transform:translateY(12px);} }`;
+        document.head.appendChild(style);
+        arrow.onclick = () => { chat.scrollTop = chat.scrollHeight; };
+        
+        // Mostrar flecha solo si hay scroll
+        setTimeout(() => {
+          if (chat.scrollHeight > chat.clientHeight) {
+            arrow.style.display = 'block';
+          }
+        }, 500);
+      }
+    }
+
+    // Función para ocultar la flecha de scroll
+    function ocultarFlechaScroll() {
+      const arrow = document.getElementById('scroll-arrow');
+      if (arrow) {
+        arrow.style.display = 'none';
+      }
+    }
+
+    // --- NUEVO: Mostrar opciones principales al abrir ---
+    function mostrarOpcionesPrincipales(mostrarSaludo = true) {
+      pushState('menu');
+      // Eliminar cualquier botón de 'Volver' existente
+      const btnVolver = document.getElementById('btn-volver');
+      if (btnVolver) btnVolver.remove();
+      // Ocultar flecha de scroll en el menú principal
+      ocultarFlechaScroll();
+      // Limpiar el chat
+      chat.innerHTML = '';
+      // Siempre mostrar la pantalla de inicio completa
+      chat.innerHTML += `<div class="header-container" style="margin-top:20px;">
+        <div class="welcome-message">¡Hola!<br>Bienvenida a Peluquería JM, ¿en qué podemos ayudarte hoy?</div>
+      </div>`;
+      chat.innerHTML += `<div class="botones-grid">
+        <div class='opcion-animada' onclick="opcionPrincipal('consultarHorarios')">
+          <div class='icono-animado'>
+            <img src="/static/reloj.png" alt="Horarios" class="boton-imagen" />
+          </div>
+        </div>
+        <div class='opcion-animada' onclick="opcionPrincipal('verUbicacion')">
+          <div class='icono-animado'>
+            <img src="/static/ubicacion.png" alt="Ubicación" class="boton-imagen" />
+          </div>
+        </div>
+        <div class='opcion-animada' onclick="opcionPrincipal('galeriaTrabajos')">
+          <div class='icono-animado'>
+            <img src="/static/galeria.png" alt="Galería" class="boton-imagen" />
+          </div>
+        </div>
+        <div class='opcion-animada' onclick="opcionPrincipal('solicitarCita')">
+          <div class='icono-animado'>
+            <img src="/static/citas.png" alt="Citas" class="boton-imagen" />
+          </div>
+        </div>
+      </div>`;
+      // Botón Ver mis citas
+      chat.innerHTML += `<div style='display:flex; justify-content:center; margin:22px 0 0 0;'><button id='btn-ver-mis-citas-menu' style='width:calc(100% - 36px); max-width:420px; background:linear-gradient(90deg,#2196f3,#90caf9); color:#fff; border:none; border-radius:24px; font-size:17px; font-weight:bold; padding:14px 0; box-shadow:0 2px 8px #90caf955; cursor:pointer; transition:background 0.2s;'>Ver mis citas</button></div>`;
+      document.getElementById('btn-ver-mis-citas-menu').onclick = function() {
+        let html = `<div style='background:rgba(255,255,255,0.97); border-radius:14px; box-shadow:0 2px 8px #90caf933; padding:18px 18px 10px 18px; margin-bottom:18px;'>`;
+        html += `<div style='font-size:18px; color:#263238; font-weight:bold; margin-bottom:10px;'>Consulta tus citas</div>`;
+        html += `<div style='margin-bottom:10px;'>Introduce tu teléfono para ver tus citas reservadas:</div>`;
+        html += `<div style='display:flex; gap:10px; justify-content:center; align-items:center; margin-bottom:10px;'>`;
+        html += `<input id='input-tel-citas' type='tel' placeholder='Tu teléfono...' style='font-size:16px; padding:8px 14px; border-radius:8px; border:1.5px solid #90caf9; outline:none; width:180px;'/>`;
+        html += `<button id='btn-buscar-citas' style='background:linear-gradient(90deg,#2196f3,#90caf9); color:#fff; border:none; border-radius:16px; font-size:16px; font-weight:bold; padding:8px 18px; box-shadow:0 2px 8px #90caf955; cursor:pointer; transition:background 0.2s;'>Buscar</button>`;
+        html += `</div>`;
+        // Botón volver al menú principal SIEMPRE visible
+        html += `<div style='display:flex; justify-content:center; margin-top:18px;'><button id='btn-volver-citas-menu' style='background:linear-gradient(90deg,#e3e3e3,#90caf9); color:#2196f3; border:none; border-radius:24px; font-size:16px; font-weight:bold; padding:10px 28px; box-shadow:0 2px 8px #90caf933; cursor:pointer; transition:background 0.2s;'>Volver</button></div>`;
+        html += `</div>`;
+        chat.innerHTML = html;
+        document.getElementById('input-tel-citas').focus();
+        document.getElementById('btn-volver-citas-menu').onclick = function() {
+          mostrarOpcionesPrincipales(true);
+        };
+        document.getElementById('btn-buscar-citas').onclick = async function() {
+          const tel = document.getElementById('input-tel-citas').value.trim();
+          if (!tel) {
+            alert('Introduce tu teléfono');
+            return;
+          }
+          this.disabled = true;
+          this.innerHTML = '⏳';
+          const res = await fetch('/citas_por_telefono', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ telefono: tel })
+          });
+          const data = await res.json();
+          let resultado = `<div style='margin-top:18px;'>`;
+          if (data.citas && data.citas.length > 0) {
+            resultado += `<div style='font-size:17px; color:#1565c0; font-weight:bold; margin-bottom:8px;'>Tus citas:</div>`;
+            data.citas.forEach(cita => {
+              resultado += `<div style='background:#f5fafd; border-radius:10px; box-shadow:0 1px 4px #90caf922; padding:10px 14px; margin-bottom:10px;'>`;
+              resultado += `<div><strong>Servicio:</strong> ${cita.servicio}</div>`;
+              resultado += `<div><strong>Día:</strong> ${formatearFecha(cita.dia)}</div>`;
+              resultado += `<div><strong>Hora:</strong> ${cita.hora}</div>`;
+              resultado += `<div><strong>Nombre:</strong> ${cita.nombre}</div>`;
+              resultado += `</div>`;
+            });
+          } else {
+            resultado += `<div style='color:#b71c1c; font-weight:bold;'>No se encontraron citas para ese teléfono.</div>`;
+          }
+          resultado += `</div>`;
+          // (Eliminado el botón volver aquí)
+          chat.innerHTML += resultado;
+          this.disabled = false;
+          this.innerHTML = 'Buscar';
+          scrollToBottom();
+        };
+        scrollToBottom();
+      };
+      scrollToBottom();
+    }
+
+    // Animación de rebote para los iconos
+    const styleAnim = document.createElement('style');
+    styleAnim.innerHTML = `
+      .opcion-animada:active .icono-animado, .opcion-animada:hover .icono-animado {
+        animation: bounce 0.4s;
+      }
+      @keyframes bounce {
+        0% { transform: scale(1); }
+        30% { transform: scale(1.25); }
+        60% { transform: scale(0.95); }
+        100% { transform: scale(1); }
+      }
+    `;
+    document.head.appendChild(styleAnim);
+
+    // Lógica para cada opción principal
+    window.opcionPrincipal = function(accion) {
+      const btns = document.getElementById('opciones-principales-btns');
+      if (btns) btns.remove();
+      // Limpiar el chat
+      chat.innerHTML = '';
+      if (accion === 'consultarHorarios') {
+        ocultarFlechaScroll();
+        chat.innerHTML += `
+        <div style='display:flex; flex-direction:column; align-items:center; justify-content:center; margin-bottom:18px; min-height:60vh;'>
+          <div style='width:90px; height:90px; margin-bottom:10px; margin-top:80px;'>
+            <svg id='svg-reloj' viewBox='0 0 100 100' width='90' height='90'>
+              <circle cx='50' cy='50' r='45' fill='#fff' stroke='#90caf9' stroke-width='6'/>
+              <circle cx='50' cy='50' r='40' fill='none' stroke='#bdbdbd' stroke-width='2' stroke-dasharray='4 6'/>
+              <line id='hora-hand' x1='50' y1='50' x2='50' y2='28' stroke='#263238' stroke-width='5' stroke-linecap='round'/>
+              <line id='min-hand' x1='50' y1='50' x2='50' y2='18' stroke='#90caf9' stroke-width='3' stroke-linecap='round'/>
+              <circle cx='50' cy='50' r='4' fill='#90caf9'/>
+            </svg>
+          </div>
+          <div style='font-size:20px; color:#fff; font-weight:bold; margin:18px 0 6px 0;'>¡Consulta nuestros horarios!</div>
+          <div style='font-size:16px; color:#fff; text-align:center;'>Lunes a viernes: <b>09:00 a 18:00</b><br>Sábados: <b>10:00 a 13:00</b></div>
+        </div>
+        <style>
+        @keyframes girarHora { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+        @keyframes girarMin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+        #svg-reloj #hora-hand { transform-origin: 50% 50%; animation: girarHora 12s linear infinite; }
+        #svg-reloj #min-hand { transform-origin: 50% 50%; animation: girarMin 2s linear infinite; }
+        </style>
+        `;
+      } else if (accion === 'verUbicacion') {
+        ocultarFlechaScroll();
+        chat.innerHTML += `
+        <div style='display:flex; flex-direction:column; align-items:center; justify-content:flex-start; min-height:50vh; margin-top:60px;'>
+          <div style='font-size:20px; color:#fff; font-weight:bold; margin-bottom:12px;'>Nuestra ubicación</div>
+          <iframe
+            src="https://www.google.com/maps?q=43.3623,-8.4115&z=16&output=embed"
+            width="100%" height="260" style="border:0; border-radius:16px; box-shadow:0 2px 12px #90caf933; max-width:380px;"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+          <a href="https://maps.app.goo.gl/LmkF9h2bCq9mkNGu7" target="_blank" style="margin-top:10px; color:#fff; font-weight:bold; text-decoration:none;">Abrir en Google Maps</a>
+        </div>
+        `;
+      } else if (accion === 'galeriaTrabajos') {
+        // Galería de imágenes de peinados
+        chat.innerHTML = `<div style='display:flex; flex-direction:column; align-items:center; margin-top:60px;'>
+          <div style='font-size:20px; color:#fff; font-weight:bold; text-align:center; margin-bottom:20px;'>Galería de trabajos</div>`;
+        const imagenes = [
+          'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
+          'https://images.pexels.com/photos/3993450/pexels-photo-3993450.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
+          'https://images.pexels.com/photos/3993451/pexels-photo-3993451.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
+          'https://images.pexels.com/photos/3993452/pexels-photo-3993452.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
+          'https://images.pexels.com/photos/3993453/pexels-photo-3993453.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
+          'https://images.pexels.com/photos/3993454/pexels-photo-3993454.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
+          'https://images.pexels.com/photos/3993455/pexels-photo-3993455.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop'
+        ];
+        chat.innerHTML += `<div style='display:flex; flex-wrap:wrap; justify-content:center; gap:18px; margin-bottom:18px;'>` +
+          imagenes.map(img => `<div style='background:#fff; border-radius:14px; box-shadow:0 2px 8px #90caf933; padding:8px;'><img src='${img}' alt='Peinado' style='width:140px; height:140px; object-fit:cover; border-radius:10px;'/></div>`).join('') +
+          `</div>`;
+        // Botón volver estático grande al final
+        chat.innerHTML += `<div style='display:flex; justify-content:center; margin-top:20px;'><button id='btn-volver-galeria' style='background:linear-gradient(90deg,#e3e3e3,#90caf9); color:#2196f3; border:none; border-radius:24px; font-size:16px; font-weight:bold; padding:10px 28px; box-shadow:0 2px 8px #90caf933; cursor:pointer; transition:background 0.2s;'>Volver</button></div>`;
+        document.getElementById('btn-volver-galeria').onclick = function() {
+          mostrarOpcionesPrincipales(true);
+        };
+        // Flecha animada de scroll
+        setTimeout(() => { chat.scrollTop = 0; }, 50);
+        mostrarFlechaScroll();
+        scrollToBottom();
+        // No añadir el botón grande, solo el animado (se añade por setTimeout más abajo)
+      } else if (accion === 'solicitarCita') {
+        // Pantalla de servicios para reservar
+        chat.innerHTML = `<div style='margin-top:60px;'>` + renderServicios('¿Qué servicio deseas reservar?', 'elegirServicio', true) + `</div>`;
+        // Scroll arriba al abrir
+        chat.scrollTop = 0;
+        // Sin flecha de scroll en el proceso de reservas
+        ocultarFlechaScroll();
+        // NO llamar a scrollToBottom aquí
+        document.getElementById('btn-volver-servicio-lista').onclick = function() {
+          chat.innerHTML = '';
+          mostrarOpcionesPrincipales(false);
+          scrollToBottom();
+        };
+        // El resto igual
+        return;
+      }
+      // Tras mostrar la info, mostrar solo un botón grande de 'Volver'
+      if (accion !== 'galeriaTrabajos') {
+        setTimeout(() => {
+          chat.innerHTML += `
+          <div style='display:flex; justify-content:center; margin-top:16px;'>
+            <button id='btn-volver' class='btn-volver-animado'>
+              <span style='display:inline-flex; align-items:center; gap:8px;'>
+                <svg width='22' height='22' viewBox='0 0 24 24' fill='none' style='vertical-align:middle;'><path d='M15 18l-6-6 6-6' stroke='#2196f3' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/></svg>
+                Volver
+              </span>
+            </button>
+          </div>
+          <style>
+          .btn-volver-animado {
+            background: linear-gradient(90deg,#e3e3e3,#90caf9);
+            color: #2196f3;
+            border: none;
+            border-radius: 28px;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 14px 38px;
+            box-shadow: 0 2px 12px rgba(33,150,243,0.10);
+            cursor: pointer;
+            outline: none;
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+            animation: aparecerBtnVolver 0.5s 0.1s forwards;
+            transition: background 0.2s, color 0.2s, transform 0.2s;
+            display: inline-block;
+          }
+          @keyframes aparecerBtnVolver {
+            to { opacity: 1; transform: translateY(0) scale(1); }
+          }
+          .btn-volver-animado:hover {
+            background: linear-gradient(90deg,#90caf9,#e3e3e3);
+            color: #1565c0;
+            transform: scale(1.04) translateY(-2px);
+            box-shadow: 0 4px 18px rgba(33,150,243,0.18);
+          }
+          </style>
+          `;
+          document.getElementById('btn-volver').onclick = function() {
+            mostrarOpcionesPrincipales(false);
+          };
+          scrollToBottom();
+        }, 700);
+      }
+    }
+
+    // Función reutilizable para renderizar el bloque de servicios
+    function renderServicios(titulo, onClickServicio, mostrarVolver = true, reservarActivo = true) {
+      const servicios = [
+        {nombre: 'Corte de mujer', precio: '18€', img: 'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Corte personalizado, asesoría de estilo y acabado profesional.'},
+        {nombre: 'Corte de hombre', precio: '12€', img: 'https://images.pexels.com/photos/3993450/pexels-photo-3993450.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Corte clásico o moderno, incluye lavado y peinado.'},
+        {nombre: 'Peinado', precio: '15€', img: 'https://images.pexels.com/photos/3993451/pexels-photo-3993451.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Peinados para eventos, fiestas o el día a día.'},
+        {nombre: 'Tinte raíz', precio: '22€', img: 'https://images.pexels.com/photos/3993452/pexels-photo-3993452.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Coloración de raíces con productos de alta calidad.'},
+        {nombre: 'Mechas', precio: '35€', img: 'https://images.pexels.com/photos/3993453/pexels-photo-3993453.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Mechas naturales o fantasía, técnica a elegir.'},
+        {nombre: 'Lavado y secado', precio: '8€', img: 'https://images.pexels.com/photos/3993454/pexels-photo-3993454.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Lavado relajante y secado con brushing.'},
+        {nombre: 'Tratamiento hidratante', precio: '20€', img: 'https://images.pexels.com/photos/3993455/pexels-photo-3993455.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Recupera el brillo y la suavidad de tu cabello.'}
+      ];
+      let html = `<div style='font-size:20px; color:#fff; font-weight:bold; text-align:center; margin:18px 0 18px 0;'>${titulo}</div>`;
+      html += `<div id='servicios-lista' style='display:flex; flex-wrap:wrap; justify-content:center; gap:22px; margin-bottom:18px;'>`;
+      html += servicios.map((s,i) => `
+        <div class='servicio-card anim-serv' style='background:rgba(255,255,255,0.92); border-radius:18px; box-shadow:0 2px 12px #90caf933; width:270px; padding:18px 18px 16px 18px; display:flex; flex-direction:column; align-items:center; transition:transform 0.2s;'>
+          <img src='${s.img}' alt='${s.nombre}' style='width:70px; height:70px; border-radius:50%; object-fit:cover; margin-bottom:12px;'/>
+          <div style='font-family: \'Montserrat\', Arial, sans-serif; font-size:19px; font-weight:700; color:#1565c0; margin-bottom:6px; letter-spacing:0.5px;'>${s.nombre}</div>
+          <div style='font-size:14px; color:#607d8b; font-family: Arial, sans-serif; text-align:center; margin-bottom:10px; min-height:32px;'>${s.desc}</div>
+          <div style='display:flex; justify-content:center; align-items:center; gap:12px; margin-top:2px;'>
+            <span style='display:inline-block; font-family:\'Rubik\', Arial, sans-serif; font-size:18px; font-weight:700; color:#2196f3; background:#fff; border-radius:16px; border:2.5px solid #90caf9; padding:8px 18px; box-shadow:0 2px 8px #90caf955; letter-spacing:0.5px;'>${s.precio}</span>
+            <button class='btn-reservar-servicio' data-servicio="${s.nombre}" ${reservarActivo ? '' : 'disabled'} style='display:inline-flex; align-items:center; gap:6px; background:linear-gradient(90deg,#90caf9,#2196f3); color:#fff; border:none; border-radius:16px; font-size:15px; font-weight:600; padding:8px 16px; box-shadow:0 2px 8px #90caf955; cursor:pointer; transition:background 0.2s; opacity:${reservarActivo ? '1' : '0.6'};'>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="18" height="16" rx="4" fill="#fff" stroke="#2196f3" stroke-width="1.5"/><rect x="7" y="2" width="2" height="4" rx="1" fill="#2196f3"/><rect x="15" y="2" width="2" height="4" rx="1" fill="#2196f3"/><rect x="7" y="10" width="10" height="2" rx="1" fill="#90caf9"/></svg>
+              Reservar
+            </button>
+          </div>
+        </div>
+      `).join('');
+      html += `</div>`;
+      if (mostrarVolver) {
+        html += `<div style='display:flex; justify-content:center; margin-bottom:10px;'><button id='btn-volver-servicio-lista' style='background:linear-gradient(90deg,#e3e3e3,#90caf9); color:#2196f3; border:none; border-radius:24px; font-size:16px; font-weight:bold; padding:10px 28px; box-shadow:0 2px 8px #90caf933; cursor:pointer; transition:background 0.2s;'>Volver</button></div>`;
+      }
+      // Asignar eventos a los botones 'Reservar' solo en la pantalla de reservar cita
+      if (reservarActivo && onClickServicio) {
+        setTimeout(() => {
+          document.querySelectorAll('.btn-reservar-servicio').forEach(btn => {
+            btn.onclick = function(e) {
+              e.stopPropagation();
+              window[onClickServicio](this.getAttribute('data-servicio'));
+            };
+          });
+        }, 0);
+      }
+      return html;
+    }
+
+    // La función mostrarServicios solo llama a la función reutilizable con el título de selección
+    function mostrarServicios() {
+      chat.innerHTML = renderServicios('¿Qué servicio deseas reservar?', 'elegirServicio', true);
+      scrollToBottom();
+      document.getElementById('btn-volver-servicio-lista').onclick = function() {
+        chat.innerHTML = '';
+        mostrarOpcionesPrincipales(false);
+        scrollToBottom();
+      };
+    }
+
+    window.elegirServicio = async function(servicio) {
+      reserva.servicio = servicio;
+      // Limpiar pantalla y mostrar calendario directamente
+      chat.innerHTML = `<div id='calendario-dias'><em>Cargando calendario...</em></div>`;
+      scrollToBottom();
+      // Pedir días disponibles al backend
+      const res = await fetch('/proximos_dias_disponibles');
+      const data = await res.json();
+      renderCalendarioDias(data.dias);
+      scrollToBottom();
+    }
+
+    function renderCalendarioDias(diasDisponibles, mesOffset = 0) {
+      pushState('calendario');
+      // Añadir margen superior para evitar superposición con header
+      const headerMargin = '<div style="margin-top:60px;"></div>';
+      // Crear un mapa fecha->disponibles
+      const diasMap = {};
+      diasDisponibles.forEach(d => diasMap[d.fecha] = d.disponibles);
+      // Obtener el primer día del mes mostrado
+      const primerDia = diasDisponibles[0].fecha;
+      let fechaActual = new Date(primerDia);
+      fechaActual.setMonth(fechaActual.getMonth() + mesOffset);
+      fechaActual.setDate(1);
+      const mes = fechaActual.toLocaleString('es-ES', { month: 'long' });
+      const anio = fechaActual.getFullYear();
+      // Calcular el primer lunes anterior o igual (sin domingos)
+      let primerLunes = new Date(fechaActual);
+      while (primerLunes.getDay() !== 1) { // 1 = lunes
+        primerLunes.setDate(primerLunes.getDate() - 1);
+      }
+      // Cabecera con mes y flechas
+      let html = headerMargin + `<div style='display:flex; align-items:center; justify-content:center; gap:18px; margin-bottom:8px;'>
+        <button id='mes-anterior' style='background:none; border:none; color:#2196f3; font-size:22px; cursor:pointer; padding:0 8px;' ${mesOffset<=0?'disabled style="opacity:0.3;cursor:not-allowed;"':''}>&lt;</button>
+        <span style='font-size:18px; font-weight:bold; color:#fff; text-transform:capitalize;'>${mes} ${anio}</span>
+        <button id='mes-siguiente' style='background:none; border:none; color:#2196f3; font-size:22px; cursor:pointer; padding:0 8px;'>&gt;</button>
+      </div>`;
+      html += `<table style='width:100%;border-collapse:collapse;text-align:center;margin-bottom:10px;'>`;
+      html += `<tr><th style='color:#fff;'>Lun</th><th style='color:#fff;'>Mar</th><th style='color:#fff;'>Mié</th><th style='color:#fff;'>Jue</th><th style='color:#fff;'>Vie</th><th style='color:#fff;'>Sáb</th><th style='color:#fff;'>Dom</th></tr>`;
+      let primerDiaSemana = fechaActual.getDay(); // 0=domingo, 1=lunes, ..., 6=sábado
+      let offset = (primerDiaSemana + 6) % 7;
+      let diasEnMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0).getDate();
+      let dia = 1;
+      for (let fila = 0; fila < 6; fila++) {
+        html += '<tr>';
+        for (let col = 0; col < 7; col++) {
+          let celdaNum = fila * 7 + col;
+          if (celdaNum < offset || dia > diasEnMes) {
+            html += `<td></td>`;
+          } else {
+            let fechaStr = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), dia).toISOString().slice(0,10);
+            if (col === 6) {
+              // Domingo: inhabilitado, gris
+              html += `<td style='padding:4px;'><div style='width:100%;background:#f3f3f3;color:#bdbdbd;border-radius:10px;padding:8px 0;opacity:0.7;position:relative;'><b>${dia}</b></div></td>`;
+            } else {
+              if (diasMap[fechaStr] !== undefined) {
+                const disponibles = diasMap[fechaStr];
+                if (disponibles > 0) {
+                  html += `<td style='padding:4px;'><button onclick=\"elegirDia('${fechaStr}')\" style='width:100%;background:#fff;border:2px solid #90caf9;color:#1565c0;border-radius:10px;padding:8px 0;font-size:15px;position:relative;'>
+                    <div><b>${dia}</b></div>
+                    <div style='margin-top:4px;'><span style='display:inline-block; background:#43a047; color:#fff; border-radius:50%; width:28px; height:28px; line-height:28px; font-size:15px; font-weight:bold;'>${disponibles}</span></div>
+                  </button></td>`;
+                } else {
+                  html += `<td style='padding:4px;'><div style='width:100%;background:#fff;color:#b71c1c;border-radius:10px;padding:8px 0;opacity:0.7;position:relative;'><b>${dia}</b><div style='margin-top:4px;'><span style='display:inline-block; background:#b71c1c; color:#fff; border-radius:50%; width:28px; height:28px; line-height:28px; font-size:15px; font-weight:bold;'>0</span></div></div></td>`;
+                }
+              } else {
+                html += `<td></td>`;
+              }
+            }
+            dia++;
+          }
+        }
+        html += '</tr>';
+      }
+      html += '</table>';
+      // Leyenda
+      html += `<div style='display:flex; align-items:center; gap:16px; justify-content:center; margin-bottom:10px;'>
+        <span style='display:inline-flex; align-items:center; gap:6px; color:#fff;'><span style='display:inline-block; background:#43a047; color:#fff; border-radius:50%; width:22px; height:22px; line-height:22px; font-size:13px; font-weight:bold; text-align:center;'></span> Citas disponibles</span>
+        <span style='display:inline-flex; align-items:center; gap:6px; color:#fff;'><span style='display:inline-block; background:#b71c1c; color:#fff; border-radius:50%; width:22px; height:22px; line-height:22px; font-size:13px; font-weight:bold; text-align:center;'>-</span> Sin citas</span>
+      </div>`;
+      // Botón Volver a selección de servicio
+      html += `<div style='display:flex; justify-content:center; margin-bottom:10px;'><button id='btn-volver-servicio' style='background:linear-gradient(90deg,#e3e3e3,#90caf9); color:#2196f3; border:none; border-radius:24px; font-size:16px; font-weight:bold; padding:10px 28px; box-shadow:0 2px 8px #90caf933; cursor:pointer; transition:background 0.2s;'>Volver</button></div>`;
+      document.getElementById('calendario-dias').innerHTML = html;
+      document.getElementById('btn-volver-servicio').onclick = function() {
+        chat.innerHTML = '';
+        mostrarServicios();
+        scrollToBottom();
+      };
+      // Navegación de meses
+      document.getElementById('mes-siguiente').onclick = async function() {
+        const res = await fetch('/proximos_dias_disponibles');
+        const data = await res.json();
+        renderCalendarioDias(data.dias, mesOffset + 1);
+      };
+      const btnAnt = document.getElementById('mes-anterior');
+      if (btnAnt) {
+        btnAnt.onclick = async function() {
+          if (mesOffset > 0) {
+            const res = await fetch('/proximos_dias_disponibles');
+            const data = await res.json();
+            renderCalendarioDias(data.dias, mesOffset - 1);
+          }
+        };
+      }
+    }
+
+    function formatearFecha(fechaStr) {
+      const d = new Date(fechaStr);
+      const dia = d.getDate().toString().padStart(2, '0');
+      const mes = (d.getMonth() + 1).toString().padStart(2, '0');
+      const anio = d.getFullYear();
+      return `${dia}/${mes}/${anio}`;
+    }
+
+    window.elegirDia = async function(dia) {
+      if (!reserva.servicio) {
+        chat.innerHTML = `<p style='color:#b71c1c; font-weight:bold;'>Debes seleccionar un servicio antes de reservar.</p>`;
+        setTimeout(mostrarServicios, 1500);
+        return;
+      }
+      pushState('horas');
+      reserva.dia = dia;
+      const btns = document.getElementById('calendario-dias');
+      if (btns) btns.remove();
+      chat.innerHTML += `<div style='margin-top:60px;'><p style='color:#fff;'><strong>Servicio:</strong> <span style='color:#90caf9;'>${reserva.servicio}</span></p>`;
+      chat.innerHTML += `<p style='color:#fff;'><strong>Día elegido:</strong> ${formatearFecha(dia)}</p>`;
+      chat.innerHTML += `<p style='color:#fff;'><strong>Selecciona una hora disponible:</strong></p>`;
+      chat.innerHTML += `<div id='horas-btns'><em>Cargando horas...</em></div>`;
+      // Botón Volver al calendario
+      chat.innerHTML += `<div style='display:flex; justify-content:center; margin-top:10px;'><button id='btn-volver-dia' style='background:linear-gradient(90deg,#e3e3e3,#90caf9); color:#2196f3; border:none; border-radius:24px; font-size:16px; font-weight:bold; padding:10px 28px; box-shadow:0 2px 8px #90caf933; cursor:pointer; transition:background 0.2s;'>Volver</button></div>`;
+      chat.innerHTML += `</div>`;
+      document.getElementById('btn-volver-dia').onclick = async function() {
+        chat.innerHTML = `<p><strong>Selecciona un día:</strong></p><div id='calendario-dias'><em>Cargando calendario...</em></div>`;
+        const res = await fetch('/proximos_dias_disponibles');
+        const data = await res.json();
+        renderCalendarioDias(data.dias);
+        scrollToBottom();
+      };
+      scrollToBottom();
+      // Consultar horas libres
+      const res = await fetch('/horas_disponibles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dia })
+      });
+      const data = await res.json();
+      const todas = [
+        '10:00', '10:30', '11:00', '11:30',
+        '12:00', '12:30', '13:00', '13:30',
+        '16:00', '16:30', '17:00', '17:30',
+        '18:00', '18:30', '19:00', '19:30'
+      ];
+      const horasBtns = todas.map(h =>
+        `<button onclick=\"elegirHora('${h}')\" ${!data.libres.includes(h) ? 'disabled style=\'opacity:0.5;cursor:not-allowed;\'' : ''}>${h}</button>`
+      ).join(' ');
+      document.getElementById('horas-btns').innerHTML = horasBtns;
+      scrollToBottom();
+    }
+
+    window.elegirHora = function(hora) {
+      if (!reserva.servicio) {
+        chat.innerHTML = `<p style='color:#b71c1c; font-weight:bold;'>Debes seleccionar un servicio antes de reservar.</p>`;
+        setTimeout(mostrarServicios, 1500);
+        return;
+      }
+      pushState('nombre');
+      reserva.hora = hora;
+      const btns = document.getElementById('horas-btns');
+      if (btns) btns.remove();
+      // Elimino el texto de selección de hora si existe
+      const textos = chat.querySelectorAll('p');
+      textos.forEach(p => {
+        if (p.textContent && p.textContent.toLowerCase().includes('selecciona una hora disponible')) {
+          p.remove();
+        }
+      });
+      // Elimino cualquier botón 'Volver' que haya quedado arriba
+      const volverAntiguos = chat.querySelectorAll('#btn-volver-dia');
+      volverAntiguos.forEach(b => b.parentElement.remove());
+      // Construir todo el bloque HTML de la pantalla de datos
+      let html = '<div style="margin-top:60px;">';
+      html += `<p style='color:#fff;'><strong>Servicio:</strong> <span style='color:#90caf9;'>${reserva.servicio}</span></p>`;
+      html += `<p style='color:#fff;'><strong>Hora elegida:</strong> ${hora}</p>`;
+      html += `<p style='color:#fff;'><strong>Introduce tu nombre y teléfono:</strong></p>`;
+      html += `<div style='display:flex; flex-direction:column; align-items:center; gap:12px; margin-top:18px; margin-bottom:18px;'>
+        <input id='input-nombre' type='text' placeholder='Nombre...' style='font-size:16px; padding:8px 14px; border-radius:8px; border:1.5px solid #90caf9; outline:none; width:90%; max-width:220px;'/>
+        <input id='input-telefono' type='tel' placeholder='Móvil (ej: 612345678)' style='font-size:16px; padding:8px 14px; border-radius:8px; border:1.5px solid #90caf9; outline:none; width:90%; max-width:220px;'/>
+        <button id='btn-check-nombre-tel' disabled style='background:linear-gradient(90deg,#90caf9,#2196f3); color:#fff; border:none; border-radius:50%; width:38px; height:38px; font-size:22px; font-weight:bold; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px #90caf955; cursor:pointer; transition:background 0.2s, opacity 0.2s; opacity:0.7;'><span>✔️</span></button>
+      </div>`;
+      html += `<div style='display:flex; justify-content:center; margin-top:30px;'><button id='btn-volver-dia' style='background:linear-gradient(90deg,#e3e3e3,#90caf9); color:#2196f3; border:none; border-radius:24px; font-size:16px; font-weight:bold; padding:10px 28px; box-shadow:0 2px 8px #90caf933; cursor:pointer; transition:background 0.2s;'>Volver</button></div>`;
+      html += '</div>';
+      chat.innerHTML = html;
+      setTimeout(()=>{
+        document.getElementById('input-nombre').focus();
+      }, 100);
+      esperandoNombre = true;
+      esperandoTelefono = true;
+      // Habilitar el botón check solo si ambos campos tienen texto
+      const inputNombre = document.getElementById('input-nombre');
+      const inputTelefono = document.getElementById('input-telefono');
+      const btnCheck = document.getElementById('btn-check-nombre-tel');
+      function validarInputs() {
+        const nombre = inputNombre.value.trim();
+        const telefono = inputTelefono.value.trim();
+        
+        // Validación de teléfono móvil español
+        const telefonoLimpio = telefono.replace(/\s/g, ''); // Eliminar espacios
+        const esTelefonoValido = /^[6-7]\d{8}$/.test(telefonoLimpio); // Móvil español: 6 o 7 + 8 dígitos
+        
+        if (nombre.length > 0 && esTelefonoValido) {
+          btnCheck.disabled = false;
+          btnCheck.style.opacity = '1';
+          inputTelefono.style.borderColor = '#90caf9';
+        } else {
+          btnCheck.disabled = true;
+          btnCheck.style.opacity = '0.7';
+          if (telefono.length > 0 && !esTelefonoValido) {
+            inputTelefono.style.borderColor = '#f44336';
+          } else {
+            inputTelefono.style.borderColor = '#90caf9';
+          }
+        }
+      }
+      inputNombre.addEventListener('input', validarInputs);
+      inputTelefono.addEventListener('input', validarInputs);
+      inputNombre.addEventListener('change', validarInputs);
+      inputTelefono.addEventListener('change', validarInputs);
+      inputNombre.addEventListener('keyup', validarInputs);
+      inputTelefono.addEventListener('keyup', validarInputs);
+      validarInputs();
+      // Permitir Enter para enviar
+      inputNombre.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !btnCheck.disabled) btnCheck.click();
+      });
+      inputTelefono.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !btnCheck.disabled) btnCheck.click();
+      });
+      btnCheck.onclick = async function() {
+        if (!reserva.servicio) {
+          chat.innerHTML = `<p style='color:#b71c1c; font-weight:bold;'>Debes seleccionar un servicio antes de reservar.</p>`;
+          setTimeout(mostrarServicios, 1500);
+          return;
+        }
+        reserva.nombre = inputNombre.value.trim();
+        reserva.telefono = inputTelefono.value.trim().replace(/\s/g, ''); // Limpiar espacios del teléfono
+        esperandoNombre = false;
+        esperandoTelefono = false;
+        // Mostrar resumen y pedir confirmación
+        let resumen = '<div style="margin-top:60px;">';
+        resumen += `<div style='background:rgba(255,255,255,0.95); border-radius:14px; box-shadow:0 2px 8px #90caf933; padding:18px 18px 10px 18px; margin-bottom:18px;'>`;
+        resumen += `<div style='display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:15px;'>`;
+        resumen += `<div style='width:32px; height:32px; animation: pulse-clock 2s infinite;'>`;
+        resumen += `<svg viewBox='0 0 24 24' width='32' height='32' style='color:#90caf9;'>`;
+        resumen += `<circle cx='12' cy='12' r='10' fill='none' stroke='currentColor' stroke-width='2'/>`;
+        resumen += `<polyline points='12,6 12,12 16,14' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>`;
+        resumen += `</svg>`;
+        resumen += `</div>`;
+        resumen += `<div style='font-size:18px; color:#000; font-weight:bold;'>Confirma tu reserva</div>`;
+        resumen += `</div>`;
+        resumen += `<style>`;
+        resumen += `@keyframes pulse-clock {`;
+        resumen += `  0%, 100% { transform: scale(1); opacity: 1; }`;
+        resumen += `  50% { transform: scale(1.1); opacity: 0.8; }`;
+        resumen += `}`;
+        resumen += `</style>`;
+        resumen += `<div style='margin-bottom:6px; color:#000;'><strong>Servicio:</strong> <span style='color:#90caf9;'>${reserva.servicio}</span></div>`;
+        resumen += `<div style='margin-bottom:6px; color:#000;'><strong>Día:</strong> ${formatearFecha(reserva.dia)}</div>`;
+        resumen += `<div style='margin-bottom:6px; color:#000;'><strong>Hora:</strong> ${reserva.hora}</div>`;
+        resumen += `<div style='margin-bottom:6px; color:#000;'><strong>Nombre:</strong> ${reserva.nombre}</div>`;
+        resumen += `<div style='margin-bottom:6px; color:#000;'><strong>Teléfono:</strong> ${reserva.telefono}</div>`;
+        resumen += `</div>`;
+        resumen += `<div style='display:flex; justify-content:center; gap:18px; margin-bottom:10px;'>`;
+        resumen += `<button id='btn-confirmar-reserva' style='background:linear-gradient(90deg,#90caf9,#2196f3); color:#fff; border:none; border-radius:24px; font-size:17px; font-weight:bold; padding:10px 32px; box-shadow:0 2px 8px #90caf955; cursor:pointer; transition:background 0.2s;'>Confirmar reserva</button>`;
+        resumen += `<button id='btn-cancelar-reserva' style='background:linear-gradient(90deg,#e3e3e3,#90caf9); color:#2196f3; border:none; border-radius:24px; font-size:17px; font-weight:bold; padding:10px 32px; box-shadow:0 2px 8px #90caf933; cursor:pointer; transition:background 0.2s;'>Cancelar</button>`;
+        resumen += `</div>`;
+        resumen += '</div>';
+        chat.innerHTML = resumen;
+        document.getElementById('btn-confirmar-reserva').onclick = async function() {
+          this.disabled = true;
+          this.innerHTML = '<span style="font-size:18px;">⏳</span>';
+          await reservarCita();
+        };
+        document.getElementById('btn-cancelar-reserva').onclick = function() {
+          window.elegirHora(reserva.hora);
+        };
+        scrollToBottom();
+      };
+      // Botón Volver abajo del todo
+      document.getElementById('btn-volver-dia').onclick = async function() {
+        chat.innerHTML = `<p><strong>Selecciona un día:</strong></p><div id='calendario-dias'><em>Cargando calendario...</em></div>`;
+        const res = await fetch('/proximos_dias_disponibles');
+        const data = await res.json();
+        renderCalendarioDias(data.dias);
+        scrollToBottom();
+      };
+      scrollToBottom();
+    }
+
+    async function reservarCita() {
+      chat.innerHTML += `<p style='color:#fff;'><em>Reservando tu cita...</em></p>`;
+      scrollToBottom();
+      const res = await fetch('/reservar_cita', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: reserva.nombre,
+          servicio: reserva.servicio,
+          dia: reserva.dia,
+          hora: reserva.hora,
+          telefono: reserva.telefono || ''
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        chat.innerHTML += `<p style='color:#fff;'><strong>✅ ¡Cita reservada correctamente!</strong></p>`;
+        // Guardar datos de la última cita
+        ultimaCita = {
+          servicio: reserva.servicio,
+          dia: reserva.dia,
+          hora: reserva.hora
+        };
+        // Preguntar por recordatorio
+        chat.innerHTML += `<p style='color:#fff;'>¿Quieres que te enviemos un recordatorio de tu cita por email?</p>`;
+        chat.innerHTML += `<div id='recordatorio-btns'>
+          <button onclick=\"recordatorioRespuesta('si')\">Sí</button>
+          <button onclick=\"recordatorioRespuesta('no')\">No</button>
+        </div>`;
+        // (Eliminado el botón volver a inicio aquí)
+      } else {
+        chat.innerHTML += `<p style='color:#fff;'><strong>❌ Error:</strong> ${data.msg}</p>`;
+      }
+      scrollToBottom();
+      // Resetear reserva
+      reserva = {servicio:null,dia:null,hora:null,nombre:null,telefono:null};
+      esperandoDia = false;
+      esperandoHora = false;
+      esperandoNombre = false;
+    }
+
+    window.recordatorioRespuesta = function(resp) {
+      const btns = document.getElementById('recordatorio-btns');
+      if (btns) btns.remove();
+      if (resp === 'si') {
+        chat.innerHTML += `<p style='color:#fff;'>Por favor, introduce tu email:</p>`;
+        chat.innerHTML += `<div style='display:flex; justify-content:center; align-items:center; gap:10px; margin-top:18px; margin-bottom:18px;'>
+          <input id='input-email' type='email' placeholder='tucorreo@email.com' style='font-size:16px; padding:8px 14px; border-radius:8px; border:1.5px solid #90caf9; outline:none; width:80%; max-width:220px;'/>
+          <button id='btn-check-email' disabled style='background:linear-gradient(90deg,#90caf9,#2196f3); color:#fff; border:none; border-radius:50%; width:38px; height:38px; font-size:22px; font-weight:bold; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px #90caf955; cursor:pointer; transition:background 0.2s, opacity 0.2s; opacity:0.7;'><span>✔️</span></button>
+        </div>`;
+        setTimeout(()=>{
+          document.getElementById('input-email').focus();
+        }, 100);
+        esperandoEmail = true;
+        const inputEmail = document.getElementById('input-email');
+        const btnCheckEmail = document.getElementById('btn-check-email');
+        function validarEmail() {
+          const val = inputEmail.value.trim();
+          // Validación básica de email
+          btnCheckEmail.disabled = !/^\S+@\S+\.\S+$/.test(val);
+          btnCheckEmail.style.opacity = btnCheckEmail.disabled ? '0.7' : '1';
+        }
+        inputEmail.addEventListener('input', validarEmail);
+        btnCheckEmail.onclick = async function() {
+          btnCheckEmail.disabled = true;
+          btnCheckEmail.innerHTML = '<span style="font-size:18px;">⏳</span>';
+          const res = await fetch('/enviar_recordatorio', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: inputEmail.value.trim(),
+              fecha: ultimaCita.dia,
+              hora: ultimaCita.hora,
+              servicio: ultimaCita.servicio
+            })
+          });
+          const data = await res.json();
+          if (data.ok) {
+            chat.innerHTML += `<p style='color:#fff;'>✅ ¡Recordatorio enviado correctamente!</p>`;
+          } else {
+            chat.innerHTML += `<p style='color:#fff;'>❌ Error al enviar el recordatorio: ${data.msg || 'Inténtalo de nuevo.'}</p>`;
+          }
+          esperandoEmail = false;
+          // Botón volver a inicio tras responder al recordatorio
+          chat.innerHTML += `<div style='display:flex; justify-content:center; margin-top:18px;'><button id='btn-volver-inicio' style='background:linear-gradient(90deg,#e3e3e3,#90caf9); color:#2196f3; border:none; border-radius:24px; font-size:16px; font-weight:bold; padding:10px 28px; box-shadow:0 2px 8px #90caf933; cursor:pointer; transition:background 0.2s;'>Volver a inicio</button></div>`;
+          document.getElementById('btn-volver-inicio').onclick = function() {
+            mostrarOpcionesPrincipales(true);
+          };
+          scrollToBottom();
+        };
+      } else {
+        chat.innerHTML += `<p style='color:#fff;'>¡Gracias! Tu cita ha sido registrada.</p>`;
+        chat.innerHTML += `<p style='color:#fff; font-size:14px; margin-top:8px;'>Puedes consultarla en cualquier momento a través del menú "Ver mis citas".</p>`;
+        // Botón volver a inicio tras responder al recordatorio
+        chat.innerHTML += `<div style='display:flex; justify-content:center; margin-top:18px;'><button id='btn-volver-inicio' style='background:linear-gradient(90deg,#e3e3e3,#90caf9); color:#2196f3; border:none; border-radius:24px; font-size:16px; font-weight:bold; padding:10px 28px; box-shadow:0 2px 8px #90caf933; cursor:pointer; transition:background 0.2s;'>Volver a inicio</button></div>`;
+        document.getElementById('btn-volver-inicio').onclick = function() {
+          mostrarOpcionesPrincipales(true);
+        };
+      }
+      scrollToBottom();
+    }
+
+    function pedirTelefono() {
+      chat.innerHTML += `<p>Por favor, introduce tu teléfono (obligatorio):</p>`;
+      esperandoTelefono = true;
+      scrollToBottom();
+    }
+
+    let esperandoEmail = false;
+
+    // Eliminar input y solo permitir interacción por botones
+    // El resto del flujo ya está basado en botones, así que no se necesita más input manual
+
+    function scrollToBottom() {
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    // Mostrar mensaje de bienvenida automáticamente en móvil
+    window.addEventListener('DOMContentLoaded', function() {
+      if (window.innerWidth <= 600) {
+        widget.style.display = "flex";
+        toggleBtn.style.display = "none";
+      }
+      if(chat.children.length === 0) {
+        mostrarOpcionesPrincipales(true);
+      }
+    });
+  </script>
+
+</body>
+</html>
