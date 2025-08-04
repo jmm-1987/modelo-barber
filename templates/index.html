@@ -299,6 +299,12 @@
       justify-content: center;
     }
     
+    /* Estilos para los contenedores de peluqueros */
+    .peluquero-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 20px #ffd54f55;
+    }
+    
     .opcion-texto {
       font-family: 'Montserrat', Arial, sans-serif;
       font-size: 15px;
@@ -340,8 +346,8 @@
     }
     .header-fixed {
       position: fixed;
-      top: 18px;
-      right: 24px;
+      top: 8px;
+      right: 8px;
       z-index: 10000;
       pointer-events: none;
       text-align: center;
@@ -379,7 +385,7 @@
   <!-- Widget del chatbot -->
   <div id="chat-widget">
     <div class="header-fixed">
-      <img src="/static/logo.png" alt="BarberShop" style="height: 120px; width: auto; max-width: 300px; object-fit: contain;">
+      <img src="/static/logo.png" alt="BarberShop" style="height: 150px; width: auto; max-width: 350px; object-fit: contain;">
     </div>
     <div id="chat-body"></div>
     <!-- Eliminado el input y el botón de enviar -->
@@ -824,22 +830,23 @@
           const data = await response.json();
           const peluqueros = data.peluqueros || [];
           
-          let html = '<div class="servicios-container">';
-          html += '<h3>👨‍💼 ¿Con qué peluquero te gustaría reservar?</h3>';
+          let html = '<div style="font-size:20px; color:#fff; font-weight:bold; text-align:center; margin:18px 0 18px 0;">👨‍💼 ¿Con qué peluquero te gustaría reservar?</div>';
+          html += '<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:22px; margin-bottom:18px;">';
           
           peluqueros.forEach(peluquero => {
             html += `
-              <div class="servicio-card" onclick="elegirPeluquero(${peluquero.id}, '${peluquero.nombre}')">
-                <div class="servicio-info">
-                  <h4>${peluquero.nombre}</h4>
-                  ${peluquero.foto_url ? `<img src="${peluquero.foto_url}" alt="${peluquero.nombre}" class="servicio-imagen">` : ''}
+              <div class="peluquero-card" onclick="elegirPeluquero(${peluquero.id}, '${peluquero.nombre}')" style="background:rgba(255,255,255,0.92); border-radius:18px; box-shadow:0 2px 12px #ffd54f33; width:270px; padding:18px 18px 16px 18px; display:flex; flex-direction:column; align-items:center; transition:transform 0.2s; cursor:pointer;">
+                ${peluquero.foto_url ? `<img src="${peluquero.foto_url}" alt="${peluquero.nombre}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; margin-bottom:12px; border:3px solid #ffd54f;">` : '<div style="width:70px; height:70px; border-radius:50%; background:#ffd54f; margin-bottom:12px; display:flex; align-items:center; justify-content:center; font-size:30px;">👨‍💼</div>'}
+                <div style="font-family: \'Montserrat\', Arial, sans-serif; font-size:19px; font-weight:700; color:#f57f17; margin-bottom:6px; letter-spacing:0.5px; text-align:center;">${peluquero.nombre}</div>
+                <div style="display:flex; justify-content:center; align-items:center; margin-top:8px;">
+                  <span style="display:inline-block; font-family:\'Rubik\', Arial, sans-serif; font-size:16px; font-weight:700; color:#f57f17; background:#fff; border-radius:16px; border:2.5px solid #ffd54f; padding:8px 18px; box-shadow:0 2px 8px #ffd54f55; letter-spacing:0.5px;">Disponible</span>
                 </div>
               </div>
             `;
           });
           
           html += '</div>';
-          html += '<button id="btn-volver-servicio-peluquero" class="btn-volver">← Volver a servicios</button>';
+          html += '<div style="display:flex; justify-content:center; margin-bottom:10px;"><button id="btn-volver-servicio-peluquero" style="background:linear-gradient(90deg,#e3e3e3,#ffd54f); color:#f57f17; border:none; border-radius:24px; font-size:16px; font-weight:bold; padding:10px 28px; box-shadow:0 2px 8px #ffd54f33; cursor:pointer; transition:background 0.2s;">← Volver a servicios</button></div>';
           
           chat.innerHTML = html;
           scrollToBottom();

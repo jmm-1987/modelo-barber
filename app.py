@@ -142,17 +142,49 @@ def init_db():
     # Tabla de configuración del negocio
     c.execute('''
         CREATE TABLE IF NOT EXISTS configuracion_negocio (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY,
             nombre_negocio TEXT DEFAULT 'Barbería del Oeste',
             direccion TEXT DEFAULT 'Calle Principal 123',
             telefono TEXT DEFAULT '+34 123 456 789',
             email TEXT DEFAULT 'info@barberia.com',
             hora_apertura TEXT DEFAULT '10:00',
             hora_cierre TEXT DEFAULT '19:00',
+            dias_laborables TEXT DEFAULT 'lunes-viernes',
+            duracion_corte INTEGER DEFAULT 30,
+            duracion_barba INTEGER DEFAULT 20,
+            duracion_combo INTEGER DEFAULT 45,
+            duracion_tratamiento INTEGER DEFAULT 60,
             intervalo_citas INTEGER DEFAULT 30,
-            dias_laborables TEXT DEFAULT '1,2,3,4,5,6'
+            anticipacion_reserva INTEGER DEFAULT 2,
+            fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    
+    # Tabla de días cerrados
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS dias_cerrados (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fecha TEXT NOT NULL,
+            motivo TEXT,
+            peluquero_id INTEGER NULL,
+            fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(fecha, peluquero_id)
+        )
+    ''')
+    
+    # Tabla de días festivos
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS dias_festivos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fecha TEXT UNIQUE NOT NULL,
+            nombre TEXT NOT NULL,
+            tipo TEXT DEFAULT 'festivo', -- festivo, puente, vacaciones
+            activo BOOLEAN DEFAULT 1,
+            fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+
     
     # Insertar datos por defecto si las tablas están vacías
     c.execute('SELECT COUNT(*) FROM horarios_disponibles')
@@ -166,13 +198,33 @@ def init_db():
     c.execute('SELECT COUNT(*) FROM servicios')
     if c.fetchone()[0] == 0:
         servicios_default = [
-            ('Corte de Cabello', '15€', 'Corte clásico o moderno', '/static/corte.jpg'),
-            ('Barba', '10€', 'Arreglo y perfilado de barba', '/static/barba.jpg'),
-            ('Corte + Barba', '20€', 'Corte completo con barba', '/static/combo.jpg'),
-            ('Color', '25€', 'Tinte y coloración', '/static/color.jpg')
+            ('Corte de Cabello', '15€', 'Corte clásico o moderno', '/static/logo.png'),
+            ('Barba', '10€', 'Arreglo y perfilado de barba', '/static/barba.jpg.png'),
+            ('Corte + Barba', '20€', 'Corte completo con barba', '/static/logo.png'),
+            ('Color', '25€', 'Tinte y coloración', '/static/logo.png')
         ]
         for servicio in servicios_default:
             c.execute('INSERT INTO servicios (nombre, precio, descripcion, imagen_url) VALUES (?, ?, ?, ?)', servicio)
+    
+    # Insertar días festivos por defecto si la tabla está vacía
+    c.execute('SELECT COUNT(*) FROM dias_festivos')
+    if c.fetchone()[0] == 0:
+        festivos_2025 = [
+            ('2025-01-01', 'Año Nuevo'),
+            ('2025-01-06', 'Día de Reyes'),
+            ('2025-04-17', 'Jueves Santo'),
+            ('2025-04-18', 'Viernes Santo'),
+            ('2025-05-01', 'Día del Trabajo'),
+            ('2025-08-15', 'Asunción de la Virgen'),
+            ('2025-10-12', 'Día de la Hispanidad'),
+            ('2025-11-01', 'Todos los Santos'),
+            ('2025-12-06', 'Día de la Constitución'),
+            ('2025-12-08', 'Inmaculada Concepción'),
+            ('2025-12-25', 'Navidad'),
+            ('2025-12-26', 'San Esteban')
+        ]
+        for fecha, nombre in festivos_2025:
+            c.execute('INSERT INTO dias_festivos (fecha, nombre) VALUES (?, ?)', (fecha, nombre))
     
     c.execute('SELECT COUNT(*) FROM peluqueros')
     if c.fetchone()[0] == 0:
@@ -226,14 +278,15 @@ def obtener_servicios():
     """Obtiene todos los servicios activos desde la base de datos"""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute('SELECT nombre, precio, descripcion, imagen_url FROM servicios WHERE activo = 1 ORDER BY nombre')
+    c.execute('SELECT nombre, precio, descripcion, imagen_url, activo FROM servicios WHERE activo = 1 ORDER BY nombre')
     servicios = []
     for row in c.fetchall():
         servicios.append({
             'nombre': row[0],
             'precio': row[1],
             'desc': row[2],
-            'img': row[3]
+            'img': row[3],
+            'activo': bool(row[4])
         })
     conn.close()
     return servicios
@@ -290,8 +343,140 @@ def actualizar_peluqueros(peluqueros):
     conn.commit()
     conn.close()
 
+def obtener_dias_cerrados():
+    """Obtiene todos los días cerrados"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''
+        SELECT dc.fecha, dc.motivo, dc.peluquero_id, p.nombre as nombre_peluquero
+        FROM dias_cerrados dc
+        LEFT JOIN peluqueros p ON dc.peluquero_id = p.id
+        ORDER BY dc.fecha, p.nombre
+    ''')
+    dias = []
+    for row in c.fetchall():
+        dias.append({
+            'fecha': row[0],
+            'motivo': row[1] or 'Sin motivo',
+            'peluquero_id': row[2],
+            'nombre_peluquero': row[3] or 'Todos los peluqueros'
+        })
+    conn.close()
+    return dias
+
+def agregar_dia_cerrado(fecha, motivo='', peluquero_id=None):
+    """Agrega un día como cerrado para un peluquero específico o todos"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    try:
+        c.execute('INSERT INTO dias_cerrados (fecha, motivo, peluquero_id) VALUES (?, ?, ?)', 
+                 (fecha, motivo, peluquero_id))
+        conn.commit()
+        conn.close()
+        return True
+    except sqlite3.IntegrityError:
+        # Ya existe un registro para esta fecha y peluquero
+        conn.close()
+        return False
+
+def agregar_dia_cerrado_todos_peluqueros(fecha, motivo=''):
+    """Agrega un día como cerrado para todos los peluqueros"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    try:
+        # Obtener todos los peluqueros activos
+        c.execute('SELECT id FROM peluqueros WHERE activo = 1')
+        peluqueros = [row[0] for row in c.fetchall()]
+        
+        # Agregar registro para cada peluquero
+        for peluquero_id in peluqueros:
+            c.execute('INSERT OR REPLACE INTO dias_cerrados (fecha, motivo, peluquero_id) VALUES (?, ?, ?)', 
+                     (fecha, motivo, peluquero_id))
+        
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        conn.close()
+        return False
+
+def eliminar_dia_cerrado(fecha, peluquero_id=None):
+    """Elimina un día de la lista de días cerrados para un peluquero específico o todos"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    if peluquero_id is None:
+        c.execute('DELETE FROM dias_cerrados WHERE fecha = ?', (fecha,))
+    else:
+        c.execute('DELETE FROM dias_cerrados WHERE fecha = ? AND peluquero_id = ?', (fecha, peluquero_id))
+    conn.commit()
+    conn.close()
+
+def es_dia_cerrado(fecha, peluquero_id=None):
+    """Verifica si una fecha está marcada como cerrada para un peluquero específico o todos"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    if peluquero_id is None:
+        c.execute('SELECT COUNT(*) FROM dias_cerrados WHERE fecha = ?', (fecha,))
+    else:
+        c.execute('SELECT COUNT(*) FROM dias_cerrados WHERE fecha = ? AND peluquero_id = ?', (fecha, peluquero_id))
+    count = c.fetchone()[0]
+    conn.close()
+    return count > 0
+
+def obtener_dias_festivos():
+    """Obtiene todos los días festivos activos"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('SELECT fecha, nombre, tipo FROM dias_festivos WHERE activo = 1 ORDER BY fecha')
+    festivos = []
+    for row in c.fetchall():
+        festivos.append({
+            'fecha': row[0],
+            'nombre': row[1],
+            'tipo': row[2]
+        })
+    conn.close()
+    return festivos
+
+def es_dia_festivo(fecha):
+    """Verifica si una fecha es festiva"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('SELECT COUNT(*) FROM dias_festivos WHERE fecha = ? AND activo = 1', (fecha,))
+    count = c.fetchone()[0]
+    conn.close()
+    return count > 0
+
+def agregar_dia_festivo(fecha, nombre, tipo='festivo'):
+    """Agrega un día festivo"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    try:
+        c.execute('INSERT INTO dias_festivos (fecha, nombre, tipo) VALUES (?, ?, ?)', (fecha, nombre, tipo))
+        conn.commit()
+        conn.close()
+        return True
+    except sqlite3.IntegrityError:
+        # La fecha ya existe
+        conn.close()
+        return False
+
+def eliminar_dia_festivo(fecha):
+    """Elimina un día festivo (lo marca como inactivo)"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('UPDATE dias_festivos SET activo = 0 WHERE fecha = ?', (fecha,))
+    conn.commit()
+    conn.close()
+
+
+
 # Consultar horas ocupadas para un día
 def horas_ocupadas(dia):
+    # Si el día está cerrado o es festivo, todas las horas están ocupadas
+    if es_dia_cerrado(dia) or es_dia_festivo(dia):
+        return obtener_horarios_disponibles()
+    
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('SELECT hora FROM citas WHERE dia = ?', (dia,))
@@ -470,6 +655,29 @@ def reservar_cita():
     guardar_cita(nombre, servicio, dia, hora, telefono, peluquero_id)
     return jsonify({'ok': True, 'msg': 'Cita reservada correctamente'})
 
+# --- ENDPOINT PARA AGREGAR CITA DESDE EL PANEL ---
+@app.route('/agregar_cita', methods=['POST'])
+def agregar_cita():
+    data = request.get_json()
+    nombre = data.get('nombre')
+    servicio = data.get('servicio')
+    fecha = data.get('fecha')
+    hora = data.get('hora')
+    telefono = data.get('telefono', '')
+    
+    # Normalizar la fecha
+    dia = normalizar_fecha(fecha)
+    if not dia:
+        return jsonify({'success': False, 'msg': 'Fecha inválida'})
+    
+    # Comprobar si la hora está ocupada
+    if hora in horas_ocupadas(dia):
+        return jsonify({'success': False, 'msg': 'La hora ya está ocupada'})
+    
+    # Guardar la cita
+    guardar_cita(nombre, servicio, dia, hora, telefono)
+    return jsonify({'success': True, 'msg': 'Cita agregada correctamente'})
+
 # --- ENDPOINT PARA CONSULTAR CITAS DE UN DÍA (panel de control) ---
 @app.route('/citas_dia', methods=['POST'])
 def citas_dia():
@@ -634,23 +842,6 @@ def guardar_configuracion():
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         
-        # Crear tabla de configuración si no existe
-        c.execute('''
-            CREATE TABLE IF NOT EXISTS configuracion_negocio (
-                id INTEGER PRIMARY KEY,
-                hora_apertura TEXT,
-                hora_cierre TEXT,
-                dias_laborables TEXT,
-                duracion_corte INTEGER,
-                duracion_barba INTEGER,
-                duracion_combo INTEGER,
-                duracion_tratamiento INTEGER,
-                intervalo_citas INTEGER,
-                anticipacion_reserva INTEGER,
-                fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        
         # Insertar o actualizar configuración
         c.execute('''
             INSERT OR REPLACE INTO configuracion_negocio 
@@ -685,23 +876,6 @@ def obtener_configuracion():
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         
-        # Crear tabla si no existe
-        c.execute('''
-            CREATE TABLE IF NOT EXISTS configuracion_negocio (
-                id INTEGER PRIMARY KEY,
-                hora_apertura TEXT,
-                hora_cierre TEXT,
-                dias_laborables TEXT,
-                duracion_corte INTEGER,
-                duracion_barba INTEGER,
-                duracion_combo INTEGER,
-                duracion_tratamiento INTEGER,
-                intervalo_citas INTEGER,
-                anticipacion_reserva INTEGER,
-                fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        
         # Obtener configuración actual
         c.execute('SELECT * FROM configuracion_negocio WHERE id = 1')
         row = c.fetchone()
@@ -709,15 +883,15 @@ def obtener_configuracion():
         
         if row:
             config = {
-                'horaApertura': row[1],
-                'horaCierre': row[2],
-                'diasLaborables': row[3],
-                'duracionCorte': row[4],
-                'duracionBarba': row[5],
-                'duracionCombo': row[6],
-                'duracionTratamiento': row[7],
-                'intervaloCitas': row[8],
-                'anticipacionReserva': row[9]
+                'horaApertura': row[5],  # hora_apertura
+                'horaCierre': row[6],     # hora_cierre
+                'diasLaborables': row[7], # dias_laborables
+                'duracionCorte': row[8],  # duracion_corte
+                'duracionBarba': row[9],  # duracion_barba
+                'duracionCombo': row[10], # duracion_combo
+                'duracionTratamiento': row[11], # duracion_tratamiento
+                'intervaloCitas': row[12], # intervalo_citas
+                'anticipacionReserva': row[13]  # anticipacion_reserva
             }
         else:
             # Configuración por defecto
@@ -886,6 +1060,178 @@ def actualizar_peluqueros_endpoint():
         
     except Exception as e:
         return jsonify({'ok': False, 'msg': f'Error al actualizar peluqueros: {str(e)}'})
+
+# --- ENDPOINTS PARA GESTIONAR DÍAS CERRADOS ---
+
+@app.route('/obtener_dias_cerrados', methods=['GET'])
+def obtener_dias_cerrados_endpoint():
+    """Obtiene todos los días cerrados"""
+    try:
+        dias = obtener_dias_cerrados()
+        return jsonify({'ok': True, 'dias_cerrados': dias})
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'Error al obtener días cerrados: {str(e)}'})
+
+@app.route('/agregar_dia_cerrado', methods=['POST'])
+def agregar_dia_cerrado_endpoint():
+    """Agrega un día como cerrado"""
+    try:
+        data = request.get_json()
+        fecha = data.get('fecha')
+        motivo = data.get('motivo', '')
+        peluquero_id = data.get('peluquero_id')
+        
+        if not fecha:
+            return jsonify({'ok': False, 'msg': 'Fecha requerida'})
+        
+        # Normalizar la fecha
+        fecha_normalizada = normalizar_fecha(fecha)
+        if not fecha_normalizada:
+            return jsonify({'ok': False, 'msg': 'Fecha inválida'})
+        
+        if agregar_dia_cerrado(fecha_normalizada, motivo, peluquero_id):
+            return jsonify({'ok': True, 'msg': 'Día cerrado agregado correctamente'})
+        else:
+            return jsonify({'ok': False, 'msg': 'Ya existe un registro para esta fecha y peluquero'})
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'Error al agregar día cerrado: {str(e)}'})
+
+@app.route('/agregar_dia_cerrado_todos_peluqueros', methods=['POST'])
+def agregar_dia_cerrado_todos_peluqueros_endpoint():
+    """Agrega un día como cerrado para todos los peluqueros"""
+    try:
+        data = request.get_json()
+        fecha = data.get('fecha')
+        motivo = data.get('motivo', '')
+        
+        if not fecha:
+            return jsonify({'ok': False, 'msg': 'Fecha requerida'})
+        
+        # Normalizar la fecha
+        fecha_normalizada = normalizar_fecha(fecha)
+        if not fecha_normalizada:
+            return jsonify({'ok': False, 'msg': 'Fecha inválida'})
+        
+        if agregar_dia_cerrado_todos_peluqueros(fecha_normalizada, motivo):
+            return jsonify({'ok': True, 'msg': 'Día cerrado agregado para todos los peluqueros'})
+        else:
+            return jsonify({'ok': False, 'msg': 'Error al agregar día cerrado'})
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'Error al agregar día cerrado: {str(e)}'})
+
+@app.route('/eliminar_dia_cerrado', methods=['POST'])
+def eliminar_dia_cerrado_endpoint():
+    """Elimina un día de la lista de días cerrados"""
+    try:
+        data = request.get_json()
+        fecha = data.get('fecha')
+        peluquero_id = data.get('peluquero_id')
+        
+        if not fecha:
+            return jsonify({'ok': False, 'msg': 'Fecha requerida'})
+        
+        # Normalizar la fecha
+        fecha_normalizada = normalizar_fecha(fecha)
+        if not fecha_normalizada:
+            return jsonify({'ok': False, 'msg': 'Fecha inválida'})
+        
+        eliminar_dia_cerrado(fecha_normalizada, peluquero_id)
+        return jsonify({'ok': True, 'msg': 'Día cerrado eliminado correctamente'})
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'Error al eliminar día cerrado: {str(e)}'})
+
+@app.route('/debug_dias_cerrados', methods=['GET'])
+def debug_dias_cerrados():
+    """Endpoint de debug para verificar días cerrados"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute('SELECT fecha, motivo FROM dias_cerrados ORDER BY fecha')
+        dias = []
+        for row in c.fetchall():
+            dias.append({
+                'fecha': row[0],
+                'motivo': row[1] or 'Sin motivo'
+            })
+        conn.close()
+        
+        # También verificar algunas fechas específicas
+        fechas_test = ['2025-01-15', '2025-01-16', '2025-01-17']
+        resultados_test = {}
+        for fecha in fechas_test:
+            resultados_test[fecha] = es_dia_cerrado(fecha)
+        
+        return jsonify({
+            'ok': True, 
+            'dias_cerrados': dias,
+            'total_dias_cerrados': len(dias),
+            'test_fechas': resultados_test
+        })
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'Error al obtener días cerrados: {str(e)}'})
+
+# --- ENDPOINTS PARA GESTIONAR DÍAS FESTIVOS ---
+
+@app.route('/obtener_dias_festivos', methods=['GET'])
+def obtener_dias_festivos_endpoint():
+    """Obtiene todos los días festivos"""
+    try:
+        festivos = obtener_dias_festivos()
+        return jsonify({'ok': True, 'dias_festivos': festivos})
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'Error al obtener días festivos: {str(e)}'})
+
+@app.route('/agregar_dia_festivo', methods=['POST'])
+def agregar_dia_festivo_endpoint():
+    """Agrega un día festivo"""
+    try:
+        data = request.get_json()
+        fecha = data.get('fecha')
+        nombre = data.get('nombre')
+        tipo = data.get('tipo', 'festivo')
+        
+        if not fecha or not nombre:
+            return jsonify({'ok': False, 'msg': 'Fecha y nombre requeridos'})
+        
+        # Normalizar la fecha
+        fecha_normalizada = normalizar_fecha(fecha)
+        if not fecha_normalizada:
+            return jsonify({'ok': False, 'msg': 'Fecha inválida'})
+        
+        if agregar_dia_festivo(fecha_normalizada, nombre, tipo):
+            return jsonify({'ok': True, 'msg': 'Día festivo agregado correctamente'})
+        else:
+            return jsonify({'ok': False, 'msg': 'La fecha ya está marcada como festiva'})
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'Error al agregar día festivo: {str(e)}'})
+
+@app.route('/eliminar_dia_festivo', methods=['POST'])
+def eliminar_dia_festivo_endpoint():
+    """Elimina un día festivo"""
+    try:
+        data = request.get_json()
+        fecha = data.get('fecha')
+        
+        if not fecha:
+            return jsonify({'ok': False, 'msg': 'Fecha requerida'})
+        
+        # Normalizar la fecha
+        fecha_normalizada = normalizar_fecha(fecha)
+        if not fecha_normalizada:
+            return jsonify({'ok': False, 'msg': 'Fecha inválida'})
+        
+        eliminar_dia_festivo(fecha_normalizada)
+        return jsonify({'ok': True, 'msg': 'Día festivo eliminado correctamente'})
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'Error al eliminar día festivo: {str(e)}'})
+
+
 
 # --- ENDPOINT DE ESTADÍSTICAS ---
 

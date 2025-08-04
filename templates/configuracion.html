@@ -390,6 +390,275 @@
       transform: scale(1.1);
     }
     
+    /* Estilos para peluqueros */
+    .peluquero-item {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+      margin-bottom: 15px;
+    }
+    
+    .peluquero-item .peluquero-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .peluquero-item .peluquero-nombre {
+      font-size: 18px;
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 10px;
+    }
+    
+    .peluquero-item .peluquero-campos {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .peluquero-item input,
+    .peluquero-item select {
+      border: 1px solid #ced4da;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 14px;
+      background: white;
+    }
+    
+    .peluquero-item input:focus,
+    .peluquero-item select:focus {
+      outline: none;
+      border-color: #90caf9;
+      box-shadow: 0 0 0 2px rgba(144, 202, 249, 0.2);
+    }
+    
+    .peluquero-item .peluquero-imagen {
+      width: 100%;
+      max-width: 200px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid #dee2e6;
+    }
+    
+    .btn-eliminar-peluquero {
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+    
+         .btn-eliminar-peluquero:hover {
+       background: #c82333;
+       transform: scale(1.1);
+     }
+     
+     /* Estilos para días cerrados */
+     .dias-cerrados-container {
+       margin-top: 20px;
+     }
+     
+     .dias-cerrados-controls {
+       display: flex;
+       gap: 15px;
+       margin-bottom: 20px;
+       flex-wrap: wrap;
+     }
+     
+     .dias-cerrados-lista {
+       display: flex;
+       flex-direction: column;
+       gap: 15px;
+       margin-top: 15px;
+     }
+     
+     .dia-cerrado-item {
+       background: #fff3cd;
+       border: 1px solid #ffeaa7;
+       border-radius: 12px;
+       padding: 20px;
+       position: relative;
+     }
+     
+     .dia-cerrado-item .dia-cerrado-header {
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+       margin-bottom: 15px;
+     }
+     
+     .dia-cerrado-item .dia-cerrado-fecha {
+       font-size: 18px;
+       font-weight: 600;
+       color: #856404;
+       margin-bottom: 10px;
+     }
+     
+     .dia-cerrado-item .dia-cerrado-campos {
+       display: grid;
+       grid-template-columns: 1fr 1fr;
+       gap: 15px;
+       margin-bottom: 15px;
+     }
+     
+     .dia-cerrado-item input,
+     .dia-cerrado-item textarea {
+       border: 1px solid #ffeaa7;
+       border-radius: 6px;
+       padding: 8px 12px;
+       font-size: 14px;
+       background: white;
+     }
+     
+     .dia-cerrado-item input:focus,
+     .dia-cerrado-item textarea:focus {
+       outline: none;
+       border-color: #fdcb6e;
+       box-shadow: 0 0 0 2px rgba(253, 203, 110, 0.2);
+     }
+     
+     .btn-eliminar-dia-cerrado {
+       background: #dc3545;
+       color: white;
+       border: none;
+       border-radius: 50%;
+       width: 30px;
+       height: 30px;
+       cursor: pointer;
+       font-size: 16px;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       transition: all 0.2s ease;
+       position: absolute;
+       top: 10px;
+       right: 10px;
+     }
+     
+     .btn-eliminar-dia-cerrado:hover {
+       background: #c82333;
+       transform: scale(1.1);
+     }
+     
+     /* Estilos para días festivos */
+     .dias-festivos-container {
+       margin-top: 20px;
+     }
+     
+     .dias-festivos-controls {
+       display: flex;
+       gap: 15px;
+       margin-bottom: 20px;
+       flex-wrap: wrap;
+     }
+     
+     .dias-festivos-lista {
+       display: flex;
+       flex-direction: column;
+       gap: 15px;
+       margin-top: 15px;
+     }
+     
+     .dia-festivo-item {
+       background: #e8f5e8;
+       border: 1px solid #a8e6cf;
+       border-radius: 12px;
+       padding: 20px;
+       position: relative;
+     }
+     
+     .dia-festivo-item .dia-festivo-header {
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+       margin-bottom: 15px;
+     }
+     
+     .dia-festivo-item .dia-festivo-fecha {
+       font-size: 18px;
+       font-weight: 600;
+       color: #2d5a2d;
+       margin-bottom: 10px;
+     }
+     
+     .dia-festivo-item .dia-festivo-campos {
+       display: grid;
+       grid-template-columns: 1fr 1fr;
+       gap: 15px;
+       margin-bottom: 15px;
+     }
+     
+     .dia-festivo-item input,
+     .dia-festivo-item select {
+       border: 1px solid #a8e6cf;
+       border-radius: 6px;
+       padding: 8px 12px;
+       font-size: 14px;
+       background: white;
+     }
+     
+     .dia-festivo-item input:focus,
+     .dia-festivo-item select:focus {
+       outline: none;
+       border-color: #66bb6a;
+       box-shadow: 0 0 0 2px rgba(102, 187, 106, 0.2);
+     }
+     
+     .btn-eliminar-dia-festivo {
+       background: #dc3545;
+       color: white;
+       border: none;
+       border-radius: 50%;
+       width: 30px;
+       height: 30px;
+       cursor: pointer;
+       font-size: 16px;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       transition: all 0.2s ease;
+       position: absolute;
+       top: 10px;
+       right: 10px;
+     }
+     
+     .btn-eliminar-dia-festivo:hover {
+       background: #c82333;
+       transform: scale(1.1);
+     }
+     
+     /* Estilos para días cerrados mejorados */
+     .control-grupo {
+       display: flex;
+       align-items: center;
+       gap: 15px;
+       flex-wrap: wrap;
+     }
+     
+     .fecha-input {
+       border: 1px solid #ddd;
+       border-radius: 6px;
+       padding: 8px 12px;
+       font-size: 14px;
+       background: white;
+     }
+    
     /* Responsive para móvil */
     @media (max-width: 768px) {
       body {
@@ -562,16 +831,63 @@
         </div>
       </div>
 
-      <!-- Sección de Peluqueros -->
-      <div class="configuracion-seccion">
-        <h3>👨‍💼 Peluqueros</h3>
-        <div class="controls">
-          <button type="button" class="btn-secundario" onclick="agregarPeluquero()">➕ Agregar Peluquero</button>
-        </div>
-        <div id="peluqueros-container">
-          <!-- Los peluqueros se cargarán dinámicamente -->
-        </div>
-      </div>
+             <!-- Sección de Peluqueros -->
+       <div class="configuracion-seccion">
+         <h3>👨‍💼 Peluqueros</h3>
+         <div class="controls">
+           <button type="button" class="btn-secundario" onclick="agregarPeluquero()">➕ Agregar Peluquero</button>
+         </div>
+         <div id="peluqueros-container">
+           <!-- Los peluqueros se cargarán dinámicamente -->
+         </div>
+       </div>
+       
+       <!-- Sección de Días Cerrados -->
+       <div class="configuracion-seccion">
+         <h3>🚫 Días Cerrados</h3>
+         <p class="descripcion-seccion">Marca los días en los que el negocio estará cerrado o peluqueros específicos no estarán disponibles.</p>
+         
+         <div class="dias-cerrados-container">
+           <div class="dias-cerrados-controls">
+             <div class="control-grupo">
+               <label>Fecha:</label>
+               <input type="date" id="fecha-dia-cerrado" class="fecha-input">
+             </div>
+             <div class="control-grupo">
+               <button type="button" class="btn-secundario" onclick="agregarDiaCerrado()">
+                 ➕ Agregar Día Cerrado
+               </button>
+               <button type="button" class="btn-secundario" onclick="cerrarDiaTodosPeluqueros()">
+                 🚫 Cerrar Día (Todos los Peluqueros)
+               </button>
+             </div>
+           </div>
+           
+           <div class="dias-cerrados-lista" id="dias-cerrados-lista">
+             <!-- Los días cerrados se cargarán dinámicamente -->
+           </div>
+         </div>
+       </div>
+       
+       <!-- Sección de Días Festivos -->
+       <div class="configuracion-seccion">
+         <h3>🎉 Días Festivos</h3>
+         <p class="descripcion-seccion">Gestiona los días festivos oficiales. Estos días se cargan automáticamente y no estarán disponibles para reservas.</p>
+         
+         <div class="dias-festivos-container">
+           <div class="dias-festivos-controls">
+             <button type="button" class="btn-secundario" onclick="agregarDiaFestivo()">
+               ➕ Agregar Día Festivo
+             </button>
+           </div>
+           
+           <div class="dias-festivos-lista" id="dias-festivos-lista">
+             <!-- Los días festivos se cargarán dinámicamente -->
+           </div>
+         </div>
+       </div>
+       
+
       
       <button type="submit" class="btn-guardar" id="btn-guardar">
         💾 Guardar Configuración
@@ -582,13 +898,15 @@
   </div>
 
   <script>
-    // Cargar configuración actual al iniciar la página
-    document.addEventListener('DOMContentLoaded', function() {
-      cargarConfiguracionActual();
-      cargarHorariosDisponibles();
-      cargarServiciosDisponibles();
-      cargarPeluqueros(); // Cargar peluqueros al cargar la página
-    });
+         // Cargar configuración actual al iniciar la página
+     document.addEventListener('DOMContentLoaded', function() {
+       cargarConfiguracionActual();
+       cargarHorariosDisponibles();
+       cargarServiciosDisponibles();
+       cargarPeluqueros(); // Cargar peluqueros al cargar la página
+       cargarDiasCerrados(); // Cargar días cerrados al cargar la página
+       cargarDiasFestivos(); // Cargar días festivos al cargar la página
+     });
 
     async function cargarConfiguracionActual() {
       try {
@@ -761,8 +1079,8 @@
           </div>
           <div class="servicio-campos">
             <div>
-              <label>URL de la imagen:</label>
-              <input type="url" class="servicio-imagen-input" value="${servicio.img}" placeholder="https://ejemplo.com/imagen.jpg">
+              <label>Ruta de la imagen:</label>
+              <input type="text" class="servicio-imagen-input" value="${servicio.img}" placeholder="/static/imagen.jpg">
             </div>
             <div>
               <label>Vista previa:</label>
@@ -801,8 +1119,8 @@
         </div>
         <div class="servicio-campos">
           <div>
-            <label>URL de la imagen:</label>
-            <input type="url" class="servicio-imagen-input" value="" placeholder="https://ejemplo.com/imagen.jpg">
+            <label>Ruta de la imagen:</label>
+            <input type="text" class="servicio-imagen-input" value="" placeholder="/static/imagen.jpg">
           </div>
           <div>
             <label>Vista previa:</label>
@@ -845,15 +1163,32 @@
         let html = '';
         peluqueros.forEach((peluquero, index) => {
             html += `
-                <div class="item-card">
-                    <div class="item-info">
-                        <div class="item-header">
-                            <h4>${peluquero.nombre}</h4>
-                            <button type="button" class="btn-eliminar" onclick="eliminarPeluquero(${index})">🗑️</button>
+                <div class="peluquero-item">
+                    <button type="button" class="btn-eliminar-peluquero" onclick="eliminarPeluquero(${index})">×</button>
+                    <div class="peluquero-header">
+                        <div class="peluquero-nombre">${peluquero.nombre}</div>
+                    </div>
+                    <div class="peluquero-campos">
+                        <div>
+                            <label>Nombre:</label>
+                            <input type="text" class="peluquero-nombre-input" value="${peluquero.nombre}" placeholder="Nombre del peluquero" onchange="actualizarPeluquero(${index}, 'nombre', this.value)">
                         </div>
-                        <div class="item-details">
-                            <p><strong>Foto:</strong> ${peluquero.foto_url || 'Sin foto'}</p>
-                            <p><strong>Estado:</strong> ${peluquero.activo ? 'Activo' : 'Inactivo'}</p>
+                        <div>
+                            <label>Ruta de la foto:</label>
+                            <input type="text" class="peluquero-foto-input" value="${peluquero.foto_url || ''}" placeholder="/static/peluquero1.jpg" onchange="actualizarPeluquero(${index}, 'foto_url', this.value)">
+                        </div>
+                    </div>
+                    <div class="peluquero-campos">
+                        <div>
+                            <label>Vista previa:</label>
+                            <img src="${peluquero.foto_url || ''}" alt="Vista previa" class="peluquero-imagen" onerror="this.style.display='none'" onload="this.style.display='block'">
+                        </div>
+                        <div>
+                            <label>Estado:</label>
+                            <select class="peluquero-activo-input" onchange="actualizarPeluquero(${index}, 'activo', this.value === 'true')">
+                                <option value="true" ${peluquero.activo ? 'selected' : ''}>Activo</option>
+                                <option value="false" ${!peluquero.activo ? 'selected' : ''}>Inactivo</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -867,7 +1202,7 @@
         const nombre = prompt('Nombre del peluquero:');
         if (!nombre) return;
         
-        const foto_url = prompt('URL de la foto (opcional):') || '';
+        const foto_url = prompt('Ruta de la foto (ej: /static/peluquero1.jpg):') || '';
         
         peluqueros.push({
             nombre: nombre,
@@ -878,13 +1213,307 @@
         mostrarPeluqueros();
     }
 
-    // Función para eliminar peluquero
-    function eliminarPeluquero(index) {
-        peluqueros.splice(index, 1);
-        mostrarPeluqueros();
+    // Función para actualizar peluquero
+    function actualizarPeluquero(index, campo, valor) {
+        if (index >= 0 && index < peluqueros.length) {
+            peluqueros[index][campo] = valor;
+            
+            // Si se actualizó la foto, actualizar la vista previa
+            if (campo === 'foto_url') {
+                const imagen = document.querySelector(`.peluquero-item:nth-child(${index + 1}) .peluquero-imagen`);
+                if (imagen) {
+                    imagen.src = valor;
+                    imagen.style.display = valor ? 'block' : 'none';
+                }
+            }
+        }
     }
-    
-    // Modificar la función de guardar configuración para incluir horarios
+
+         // Función para eliminar peluquero
+     function eliminarPeluquero(index) {
+         peluqueros.splice(index, 1);
+         mostrarPeluqueros();
+     }
+     
+     // --- FUNCIONES PARA DÍAS CERRADOS ---
+     let diasCerrados = [];
+     
+     // Función para cargar días cerrados desde la BD
+     async function cargarDiasCerrados() {
+         try {
+             const response = await fetch('/obtener_dias_cerrados');
+             if (response.ok) {
+                 const data = await response.json();
+                 diasCerrados = data.dias_cerrados || [];
+                 mostrarDiasCerrados();
+             }
+         } catch (error) {
+             console.error('Error cargando días cerrados:', error);
+         }
+     }
+     
+     // Función para mostrar días cerrados
+     function mostrarDiasCerrados() {
+         const container = document.getElementById('dias-cerrados-lista');
+         if (diasCerrados.length === 0) {
+             container.innerHTML = '<p class="no-data">No hay días cerrados configurados</p>';
+             return;
+         }
+         
+         let html = '';
+         diasCerrados.forEach((dia, index) => {
+             const fechaDisplay = formatearFechaDisplay(dia.fecha);
+             html += `
+                 <div class="dia-cerrado-item">
+                     <button type="button" class="btn-eliminar-dia-cerrado" onclick="eliminarDiaCerrado('${dia.fecha}', ${dia.peluquero_id || 'null'})">×</button>
+                     <div class="dia-cerrado-header">
+                         <div class="dia-cerrado-fecha">${fechaDisplay}</div>
+                     </div>
+                     <div class="dia-cerrado-campos">
+                         <div>
+                             <label>Peluquero:</label>
+                             <span style="font-weight: bold; color: #856404;">${dia.nombre_peluquero}</span>
+                         </div>
+                         <div>
+                             <label>Motivo:</label>
+                             <input type="text" class="dia-cerrado-motivo-input" value="${dia.motivo}" placeholder="Vacaciones, día festivo, etc." onchange="actualizarDiaCerrado('${dia.fecha}', 'motivo', this.value)">
+                         </div>
+                     </div>
+                 </div>
+             `;
+         });
+         container.innerHTML = html;
+     }
+     
+     // Función para agregar día cerrado
+     function agregarDiaCerrado() {
+         const fecha = document.getElementById('fecha-dia-cerrado').value;
+         if (!fecha) {
+             mostrarMensaje('❌ Por favor, selecciona una fecha', 'error');
+             return;
+         }
+         
+         const motivo = prompt('Motivo (opcional):') || '';
+         
+         fetch('/agregar_dia_cerrado', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({
+                 fecha: fecha,
+                 motivo: motivo
+             })
+         })
+         .then(response => response.json())
+         .then(data => {
+             if (data.ok) {
+                 cargarDiasCerrados();
+                 mostrarMensaje('✅ Día cerrado agregado correctamente', 'exito');
+             } else {
+                 mostrarMensaje(`❌ Error: ${data.msg}`, 'error');
+             }
+         })
+         .catch(error => {
+             console.error('Error:', error);
+             mostrarMensaje('❌ Error al agregar día cerrado', 'error');
+         });
+     }
+     
+     // Función para cerrar día para todos los peluqueros
+     function cerrarDiaTodosPeluqueros() {
+         const fecha = document.getElementById('fecha-dia-cerrado').value;
+         if (!fecha) {
+             mostrarMensaje('❌ Por favor, selecciona una fecha', 'error');
+             return;
+         }
+         
+         const motivo = prompt('Motivo para cerrar el día (opcional):') || '';
+         
+         fetch('/agregar_dia_cerrado_todos_peluqueros', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({
+                 fecha: fecha,
+                 motivo: motivo
+             })
+         })
+         .then(response => response.json())
+         .then(data => {
+             if (data.ok) {
+                 cargarDiasCerrados();
+                 mostrarMensaje('✅ Día cerrado para todos los peluqueros', 'exito');
+             } else {
+                 mostrarMensaje(`❌ Error: ${data.msg}`, 'error');
+             }
+         })
+         .catch(error => {
+             console.error('Error:', error);
+             mostrarMensaje('❌ Error al cerrar día', 'error');
+         });
+     }
+     
+     // Función para eliminar día cerrado
+     function eliminarDiaCerrado(fecha, peluqueroId) {
+         if (!confirm('¿Estás seguro de que quieres eliminar este día cerrado?')) {
+             return;
+         }
+         
+         fetch('/eliminar_dia_cerrado', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ 
+                 fecha: fecha,
+                 peluquero_id: peluqueroId === 'null' ? null : peluqueroId
+             })
+         })
+         .then(response => response.json())
+         .then(data => {
+             if (data.ok) {
+                 cargarDiasCerrados();
+                 mostrarMensaje('✅ Día cerrado eliminado correctamente', 'exito');
+             } else {
+                 mostrarMensaje(`❌ Error: ${data.msg}`, 'error');
+             }
+         })
+         .catch(error => {
+             console.error('Error:', error);
+             mostrarMensaje('❌ Error al eliminar día cerrado', 'error');
+         });
+     }
+     
+     // Función para formatear fecha para display
+     function formatearFechaDisplay(fecha) {
+         const parts = fecha.split('-');
+         if (parts.length === 3) {
+             return `${parts[2]}/${parts[1]}/${parts[0]}`;
+         }
+         return fecha;
+     }
+     
+     // --- FUNCIONES PARA DÍAS FESTIVOS ---
+     let diasFestivos = [];
+     
+     // Función para cargar días festivos desde la BD
+     async function cargarDiasFestivos() {
+         try {
+             const response = await fetch('/obtener_dias_festivos');
+             if (response.ok) {
+                 const data = await response.json();
+                 diasFestivos = data.dias_festivos || [];
+                 mostrarDiasFestivos();
+             }
+         } catch (error) {
+             console.error('Error cargando días festivos:', error);
+         }
+     }
+     
+     // Función para mostrar días festivos
+     function mostrarDiasFestivos() {
+         const container = document.getElementById('dias-festivos-lista');
+         if (diasFestivos.length === 0) {
+             container.innerHTML = '<p class="no-data">No hay días festivos configurados</p>';
+             return;
+         }
+         
+         let html = '';
+         diasFestivos.forEach((dia, index) => {
+             const fechaDisplay = formatearFechaDisplay(dia.fecha);
+             html += `
+                 <div class="dia-festivo-item">
+                     <button type="button" class="btn-eliminar-dia-festivo" onclick="eliminarDiaFestivo('${dia.fecha}')">×</button>
+                     <div class="dia-festivo-header">
+                         <div class="dia-festivo-fecha">${fechaDisplay}</div>
+                     </div>
+                     <div class="dia-festivo-campos">
+                         <div>
+                             <label>Nombre:</label>
+                             <input type="text" class="dia-festivo-nombre-input" value="${dia.nombre}" placeholder="Nombre del festivo" onchange="actualizarDiaFestivo('${dia.fecha}', 'nombre', this.value)">
+                         </div>
+                         <div>
+                             <label>Tipo:</label>
+                             <select class="dia-festivo-tipo-input" onchange="actualizarDiaFestivo('${dia.fecha}', 'tipo', this.value)">
+                                 <option value="festivo" ${dia.tipo === 'festivo' ? 'selected' : ''}>Festivo</option>
+                                 <option value="puente" ${dia.tipo === 'puente' ? 'selected' : ''}>Puente</option>
+                                 <option value="vacaciones" ${dia.tipo === 'vacaciones' ? 'selected' : ''}>Vacaciones</option>
+                             </select>
+                         </div>
+                     </div>
+                 </div>
+             `;
+         });
+         container.innerHTML = html;
+     }
+     
+     // Función para agregar día festivo
+     function agregarDiaFestivo() {
+         const fecha = prompt('Fecha (DD/MM/AAAA):');
+         if (!fecha) return;
+         
+         const nombre = prompt('Nombre del festivo:');
+         if (!nombre) return;
+         
+         const tipo = prompt('Tipo (festivo/puente/vacaciones):', 'festivo');
+         
+         // Convertir fecha a formato YYYY-MM-DD
+         const fechaParts = fecha.split('/');
+         if (fechaParts.length === 3) {
+             const fechaFormateada = `${fechaParts[2]}-${fechaParts[1].padStart(2, '0')}-${fechaParts[0].padStart(2, '0')}`;
+             
+             fetch('/agregar_dia_festivo', {
+                 method: 'POST',
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify({
+                     fecha: fechaFormateada,
+                     nombre: nombre,
+                     tipo: tipo
+                 })
+             })
+             .then(response => response.json())
+             .then(data => {
+                 if (data.ok) {
+                     cargarDiasFestivos();
+                     mostrarMensaje('✅ Día festivo agregado correctamente', 'exito');
+                 } else {
+                     mostrarMensaje(`❌ Error: ${data.msg}`, 'error');
+                 }
+             })
+             .catch(error => {
+                 console.error('Error:', error);
+                 mostrarMensaje('❌ Error al agregar día festivo', 'error');
+             });
+         } else {
+             alert('Formato de fecha inválido. Use DD/MM/AAAA');
+         }
+     }
+     
+     // Función para eliminar día festivo
+     function eliminarDiaFestivo(fecha) {
+         if (!confirm('¿Estás seguro de que quieres eliminar este día festivo?')) {
+             return;
+         }
+         
+         fetch('/eliminar_dia_festivo', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ fecha: fecha })
+         })
+         .then(response => response.json())
+         .then(data => {
+             if (data.ok) {
+                 cargarDiasFestivos();
+                 mostrarMensaje('✅ Día festivo eliminado correctamente', 'exito');
+             } else {
+                 mostrarMensaje(`❌ Error: ${data.msg}`, 'error');
+             }
+         })
+         .catch(error => {
+             console.error('Error:', error);
+             mostrarMensaje('❌ Error al eliminar día festivo', 'error');
+                  });
+     }
+     
+
+     
+     // Modificar la función de guardar configuración para incluir horarios
     document.getElementById('form-configuracion').addEventListener('submit', async function(e) {
       e.preventDefault();
       
@@ -948,7 +1577,8 @@
             nombre: nombre,
             precio: precio,
             descripcion: descripcion,
-            imagen_url: imagen
+            imagen_url: imagen,
+            activo: true  // Todos los servicios mostrados están activos
           };
         }).filter(servicio => servicio.nombre && servicio.precio);
         
