@@ -195,6 +195,201 @@
       border: 1px solid #f5c6cb;
     }
     
+    .descripcion-seccion {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    
+    .horarios-disponibles-container {
+      margin-top: 20px;
+    }
+    
+    .horarios-controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .btn-secundario {
+      background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+    }
+    
+    .btn-secundario:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+    }
+    
+    .horarios-lista {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .horario-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 10px 15px;
+      position: relative;
+    }
+    
+    .horario-item input {
+      border: none;
+      background: transparent;
+      font-size: 16px;
+      font-weight: 600;
+      color: #495057;
+      width: 80px;
+      text-align: center;
+    }
+    
+    .horario-item input:focus {
+      outline: none;
+      background: white;
+      border-radius: 4px;
+      padding: 2px 4px;
+    }
+    
+    .btn-eliminar-horario {
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-eliminar-horario:hover {
+      background: #c82333;
+      transform: scale(1.1);
+    }
+    
+    .servicios-disponibles-container {
+      margin-top: 20px;
+    }
+    
+    .servicios-controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .servicios-lista {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 15px;
+    }
+    
+    .servicio-item {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+    }
+    
+    .servicio-item .servicio-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .servicio-item .servicio-nombre {
+      font-size: 18px;
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 10px;
+    }
+    
+    .servicio-item .servicio-campos {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .servicio-item .servicio-campos.full-width {
+      grid-template-columns: 1fr;
+    }
+    
+    .servicio-item input,
+    .servicio-item textarea {
+      border: 1px solid #ced4da;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 14px;
+      background: white;
+    }
+    
+    .servicio-item input:focus,
+    .servicio-item textarea:focus {
+      outline: none;
+      border-color: #90caf9;
+      box-shadow: 0 0 0 2px rgba(144, 202, 249, 0.2);
+    }
+    
+    .servicio-item .servicio-precio {
+      font-weight: 600;
+      color: #2196f3;
+    }
+    
+    .servicio-item .servicio-imagen {
+      width: 100%;
+      max-width: 200px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid #dee2e6;
+    }
+    
+    .btn-eliminar-servicio {
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+    
+    .btn-eliminar-servicio:hover {
+      background: #c82333;
+      transform: scale(1.1);
+    }
+    
     /* Responsive para móvil */
     @media (max-width: 768px) {
       body {
@@ -330,6 +525,43 @@
         </div>
       </div>
       
+      <div class="configuracion-seccion">
+        <h3>🕐 Horarios Disponibles</h3>
+        <p class="descripcion-seccion">Configura los horarios específicos en los que se pueden reservar citas. Estos horarios se usarán tanto en la reserva de clientes como en el panel de administración.</p>
+        
+        <div class="horarios-disponibles-container">
+          <div class="horarios-controls">
+            <button type="button" class="btn-secundario" onclick="generarHorariosAutomaticos()">
+              🔄 Generar Automáticamente
+            </button>
+            <button type="button" class="btn-secundario" onclick="agregarHorario()">
+              ➕ Agregar Horario
+            </button>
+          </div>
+          
+          <div class="horarios-lista" id="horarios-lista">
+            <!-- Los horarios se cargarán dinámicamente aquí -->
+          </div>
+        </div>
+      </div>
+      
+      <div class="configuracion-seccion">
+        <h3>✂️ Servicios</h3>
+        <p class="descripcion-seccion">Configura los servicios que ofreces, incluyendo nombre, precio, descripción e imagen. Estos servicios se mostrarán a los clientes en el proceso de reserva.</p>
+        
+        <div class="servicios-disponibles-container">
+          <div class="servicios-controls">
+            <button type="button" class="btn-secundario" onclick="agregarServicio()">
+              ➕ Agregar Servicio
+            </button>
+          </div>
+          
+          <div class="servicios-lista" id="servicios-lista">
+            <!-- Los servicios se cargarán dinámicamente aquí -->
+          </div>
+        </div>
+      </div>
+      
       <button type="submit" class="btn-guardar" id="btn-guardar">
         💾 Guardar Configuración
       </button>
@@ -342,6 +574,8 @@
     // Cargar configuración actual al iniciar la página
     document.addEventListener('DOMContentLoaded', function() {
       cargarConfiguracionActual();
+      cargarHorariosDisponibles();
+      cargarServiciosDisponibles();
     });
 
     async function cargarConfiguracionActual() {
@@ -368,7 +602,210 @@
       }
     }
 
-    // Manejar el envío del formulario de configuración
+
+
+    function mostrarMensaje(texto, tipo) {
+      const mensajeEstado = document.getElementById('mensaje-estado');
+      mensajeEstado.textContent = texto;
+      mensajeEstado.className = `mensaje-estado mensaje-${tipo}`;
+      mensajeEstado.style.display = 'block';
+      
+      // Auto-ocultar mensajes de éxito después de 5 segundos
+      if (tipo === 'exito') {
+        setTimeout(() => {
+          ocultarMensaje();
+        }, 5000);
+      }
+    }
+
+    function ocultarMensaje() {
+      const mensajeEstado = document.getElementById('mensaje-estado');
+      mensajeEstado.style.display = 'none';
+    }
+    
+    // Funciones para manejar horarios disponibles
+    async function cargarHorariosDisponibles() {
+      try {
+        const response = await fetch('/obtener_horarios_disponibles');
+        const data = await response.json();
+        
+        if (data.ok) {
+          mostrarHorarios(data.horarios);
+        } else {
+          console.error('Error al cargar horarios:', data.msg);
+        }
+      } catch (error) {
+        console.error('Error de conexión al cargar horarios:', error);
+      }
+    }
+    
+    function mostrarHorarios(horarios) {
+      const container = document.getElementById('horarios-lista');
+      container.innerHTML = '';
+      
+      horarios.forEach(horario => {
+        const horarioItem = document.createElement('div');
+        horarioItem.className = 'horario-item';
+        horarioItem.innerHTML = `
+          <input type="time" value="${horario}" onchange="actualizarHorario(this)">
+          <button type="button" class="btn-eliminar-horario" onclick="eliminarHorario(this)">×</button>
+        `;
+        container.appendChild(horarioItem);
+      });
+    }
+    
+    function agregarHorario() {
+      const container = document.getElementById('horarios-lista');
+      const horarioItem = document.createElement('div');
+      horarioItem.className = 'horario-item';
+      horarioItem.innerHTML = `
+        <input type="time" value="10:00" onchange="actualizarHorario(this)">
+        <button type="button" class="btn-eliminar-horario" onclick="eliminarHorario(this)">×</button>
+      `;
+      container.appendChild(horarioItem);
+    }
+    
+    function eliminarHorario(button) {
+      button.parentElement.remove();
+    }
+    
+    async function actualizarHorario(input) {
+      // Esta función se ejecuta cuando se cambia un horario
+      // Los cambios se guardarán cuando se guarde la configuración
+    }
+    
+    async function generarHorariosAutomaticos() {
+      try {
+        const horaApertura = document.getElementById('hora-apertura').value;
+        const horaCierre = document.getElementById('hora-cierre').value;
+        const intervaloCitas = parseInt(document.getElementById('intervalo-citas').value);
+        
+        const response = await fetch('/generar_horarios_automaticos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            horaApertura: horaApertura,
+            horaCierre: horaCierre,
+            intervaloCitas: intervaloCitas
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.ok) {
+          mostrarHorarios(data.horarios);
+          mostrarMensaje('✅ Horarios generados automáticamente', 'exito');
+        } else {
+          mostrarMensaje(`❌ Error al generar horarios: ${data.msg}`, 'error');
+        }
+      } catch (error) {
+        mostrarMensaje(`❌ Error de conexión: ${error.message}`, 'error');
+      }
+    }
+    
+    // Funciones para manejar servicios
+    async function cargarServiciosDisponibles() {
+      try {
+        const response = await fetch('/obtener_servicios');
+        const data = await response.json();
+        
+        if (data.ok) {
+          mostrarServicios(data.servicios);
+        } else {
+          console.error('Error al cargar servicios:', data.msg);
+        }
+      } catch (error) {
+        console.error('Error de conexión al cargar servicios:', error);
+      }
+    }
+    
+    function mostrarServicios(servicios) {
+      const container = document.getElementById('servicios-lista');
+      container.innerHTML = '';
+      
+      servicios.forEach(servicio => {
+        const servicioItem = document.createElement('div');
+        servicioItem.className = 'servicio-item';
+        servicioItem.innerHTML = `
+          <button type="button" class="btn-eliminar-servicio" onclick="eliminarServicio(this)">×</button>
+          <div class="servicio-header">
+            <div class="servicio-nombre">${servicio.nombre}</div>
+          </div>
+          <div class="servicio-campos">
+            <div>
+              <label>Nombre:</label>
+              <input type="text" class="servicio-nombre-input" value="${servicio.nombre}" placeholder="Nombre del servicio">
+            </div>
+            <div>
+              <label>Precio:</label>
+              <input type="text" class="servicio-precio-input" value="${servicio.precio}" placeholder="Ej: 25€">
+            </div>
+          </div>
+          <div class="servicio-campos full-width">
+            <div>
+              <label>Descripción:</label>
+              <textarea class="servicio-descripcion-input" rows="3" placeholder="Descripción del servicio">${servicio.desc}</textarea>
+            </div>
+          </div>
+          <div class="servicio-campos">
+            <div>
+              <label>URL de la imagen:</label>
+              <input type="url" class="servicio-imagen-input" value="${servicio.img}" placeholder="https://ejemplo.com/imagen.jpg">
+            </div>
+            <div>
+              <label>Vista previa:</label>
+              <img src="${servicio.img}" alt="Vista previa" class="servicio-imagen" onerror="this.style.display='none'">
+            </div>
+          </div>
+        `;
+        container.appendChild(servicioItem);
+      });
+    }
+    
+    function agregarServicio() {
+      const container = document.getElementById('servicios-lista');
+      const servicioItem = document.createElement('div');
+      servicioItem.className = 'servicio-item';
+      servicioItem.innerHTML = `
+        <button type="button" class="btn-eliminar-servicio" onclick="eliminarServicio(this)">×</button>
+        <div class="servicio-header">
+          <div class="servicio-nombre">Nuevo Servicio</div>
+        </div>
+        <div class="servicio-campos">
+          <div>
+            <label>Nombre:</label>
+            <input type="text" class="servicio-nombre-input" value="" placeholder="Nombre del servicio">
+          </div>
+          <div>
+            <label>Precio:</label>
+            <input type="text" class="servicio-precio-input" value="" placeholder="Ej: 25€">
+          </div>
+        </div>
+        <div class="servicio-campos full-width">
+          <div>
+            <label>Descripción:</label>
+            <textarea class="servicio-descripcion-input" rows="3" placeholder="Descripción del servicio"></textarea>
+          </div>
+        </div>
+        <div class="servicio-campos">
+          <div>
+            <label>URL de la imagen:</label>
+            <input type="url" class="servicio-imagen-input" value="" placeholder="https://ejemplo.com/imagen.jpg">
+          </div>
+          <div>
+            <label>Vista previa:</label>
+            <img src="" alt="Vista previa" class="servicio-imagen" style="display: none;">
+          </div>
+        </div>
+      `;
+      container.appendChild(servicioItem);
+    }
+    
+    function eliminarServicio(button) {
+      button.parentElement.remove();
+    }
+    
+    // Modificar la función de guardar configuración para incluir horarios
     document.getElementById('form-configuracion').addEventListener('submit', async function(e) {
       e.preventDefault();
       
@@ -389,46 +826,77 @@
       };
 
       try {
-        const response = await fetch('/guardar_configuracion', {
+        // Guardar configuración del negocio
+        const responseConfig = await fetch('/guardar_configuracion', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(configuracion)
         });
         
-        const data = await response.json();
+        const dataConfig = await responseConfig.json();
         
-        if (data.ok) {
-          mostrarMensaje('✅ Configuración guardada exitosamente. Los cambios se aplicarán en las próximas citas.', 'exito');
-        } else {
-          mostrarMensaje(`❌ Error al guardar configuración: ${data.msg}`, 'error');
+        if (!dataConfig.ok) {
+          throw new Error(dataConfig.msg);
         }
+        
+        // Guardar horarios disponibles
+        const horarios = Array.from(document.querySelectorAll('.horario-item input'))
+          .map(input => input.value)
+          .filter(horario => horario.trim() !== '');
+        
+        if (horarios.length > 0) {
+          const responseHorarios = await fetch('/actualizar_horarios_disponibles', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ horarios: horarios })
+          });
+          
+          const dataHorarios = await responseHorarios.json();
+          
+          if (!dataHorarios.ok) {
+            throw new Error(dataHorarios.msg);
+          }
+        }
+        
+        // Guardar servicios
+        const servicios = Array.from(document.querySelectorAll('.servicio-item')).map(item => {
+          const nombre = item.querySelector('.servicio-nombre-input').value.trim();
+          const precio = item.querySelector('.servicio-precio-input').value.trim();
+          const descripcion = item.querySelector('.servicio-descripcion-input').value.trim();
+          const imagen = item.querySelector('.servicio-imagen-input').value.trim();
+          
+          return {
+            nombre: nombre,
+            precio: precio,
+            descripcion: descripcion,
+            imagen_url: imagen
+          };
+        }).filter(servicio => servicio.nombre && servicio.precio);
+        
+        if (servicios.length > 0) {
+          const responseServicios = await fetch('/actualizar_servicios', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ servicios: servicios })
+          });
+          
+          const dataServicios = await responseServicios.json();
+          
+          if (!dataServicios.ok) {
+            throw new Error(dataServicios.msg);
+          }
+        }
+        
+        mostrarMensaje('✅ Configuración, horarios y servicios guardados exitosamente', 'exito');
+        
       } catch (error) {
-        mostrarMensaje(`❌ Error de conexión: ${error.message}`, 'error');
+        mostrarMensaje(`❌ Error al guardar: ${error.message}`, 'error');
       } finally {
         // Restaurar botón
         btnGuardar.disabled = false;
         btnGuardar.innerHTML = '💾 Guardar Configuración';
       }
     });
-
-    function mostrarMensaje(texto, tipo) {
-      const mensajeEstado = document.getElementById('mensaje-estado');
-      mensajeEstado.textContent = texto;
-      mensajeEstado.className = `mensaje-estado mensaje-${tipo}`;
-      mensajeEstado.style.display = 'block';
-      
-      // Auto-ocultar mensajes de éxito después de 5 segundos
-      if (tipo === 'exito') {
-        setTimeout(() => {
-          ocultarMensaje();
-        }, 5000);
-      }
-    }
-
-    function ocultarMensaje() {
-      const mensajeEstado = document.getElementById('mensaje-estado');
-      mensajeEstado.style.display = 'none';
-    }
   </script>
 </body>
 </html> 

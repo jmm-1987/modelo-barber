@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify, render_template
-# from openai import OpenAI  # Eliminado
-# from dotenv import load_dotenv  # Eliminado
+
 import os
 import smtplib
 from email.message import EmailMessage
@@ -15,14 +14,9 @@ import datetime
 app = Flask(__name__)
 
 # Variables globales (simples, sin sesiones)
-conversacion_log = []
-nombre_usuario = ""
-telefono_usuario = ""
-correo_enviado = False
+# Nota: Se eliminaron las variables del chatbot que no se usan
 
-# Eliminado: modo_chatbot
-
-# Función para enviar el correo con los datos
+# Función para enviar el correo con los datos (mantenida para recordatorios)
 def enviar_correo(nombre, telefono, conversacion):
     try:
         print("✉️ Intentando enviar correo...")
@@ -99,6 +93,8 @@ def formatear_fecha_display(fecha_str):
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
+    
+    # Tabla de citas
     c.execute('''
         CREATE TABLE IF NOT EXISTS citas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -109,6 +105,137 @@ def init_db():
             telefono TEXT
         )
     ''')
+    
+    # Tabla de horarios disponibles
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS horarios_disponibles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            hora TEXT UNIQUE,
+            activo BOOLEAN DEFAULT 1
+        )
+    ''')
+    
+    # Tabla de configuración del negocio
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS configuracion_negocio (
+            id INTEGER PRIMARY KEY,
+            hora_apertura TEXT,
+            hora_cierre TEXT,
+            dias_laborables TEXT,
+            duracion_corte INTEGER,
+            duracion_barba INTEGER,
+            duracion_combo INTEGER,
+            duracion_tratamiento INTEGER,
+            intervalo_citas INTEGER,
+            anticipacion_reserva INTEGER,
+            fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # Tabla de servicios
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS servicios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            precio TEXT NOT NULL,
+            descripcion TEXT,
+            imagen_url TEXT,
+            activo BOOLEAN DEFAULT 1
+        )
+    ''')
+    
+    # Insertar horarios por defecto si la tabla está vacía
+    c.execute('SELECT COUNT(*) FROM horarios_disponibles')
+    if c.fetchone()[0] == 0:
+        horarios_default = [
+            '10:00', '10:30', '11:00', '11:30',
+            '12:00', '12:30', '13:00', '13:30',
+            '16:00', '16:30', '17:00', '17:30',
+            '18:00', '18:30', '19:00', '19:30'
+        ]
+        for hora in horarios_default:
+            c.execute('INSERT INTO horarios_disponibles (hora) VALUES (?)', (hora,))
+    
+    # Insertar servicios por defecto si la tabla está vacía
+    c.execute('SELECT COUNT(*) FROM servicios')
+    if c.fetchone()[0] == 0:
+        servicios_default = [
+            ('Corte de mujer', '18€', 'Corte personalizado, asesoría de estilo y acabado profesional.', 'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop'),
+            ('Corte de hombre', '12€', 'Corte clásico o moderno, incluye lavado y peinado.', 'https://images.pexels.com/photos/3993450/pexels-photo-3993450.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop'),
+            ('Peinado', '15€', 'Peinados para eventos, fiestas o el día a día.', 'https://images.pexels.com/photos/3993451/pexels-photo-3993451.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop'),
+            ('Tinte raíz', '22€', 'Coloración de raíces con productos de alta calidad.', 'https://images.pexels.com/photos/3993452/pexels-photo-3993452.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop'),
+            ('Mechas', '35€', 'Mechas naturales o fantasía, técnica a elegir.', 'https://images.pexels.com/photos/3993453/pexels-photo-3993453.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop'),
+            ('Lavado y secado', '8€', 'Lavado relajante y secado con brushing.', 'https://images.pexels.com/photos/3993454/pexels-photo-3993454.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop'),
+            ('Tratamiento hidratante', '20€', 'Recupera el brillo y la suavidad de tu cabello.', 'https://images.pexels.com/photos/3993455/pexels-photo-3993455.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop')
+        ]
+        for servicio in servicios_default:
+            c.execute('INSERT INTO servicios (nombre, precio, descripcion, imagen_url) VALUES (?, ?, ?, ?)', servicio)
+    
+    conn.commit()
+    conn.close()
+
+# Obtener horarios disponibles desde la BD
+def obtener_horarios_disponibles():
+    """Obtiene todos los horarios disponibles desde la base de datos"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('SELECT hora FROM horarios_disponibles WHERE activo = 1 ORDER BY hora')
+    horarios = [row[0] for row in c.fetchall()]
+    conn.close()
+    return horarios
+
+# Actualizar horarios disponibles
+def actualizar_horarios_disponibles(horarios):
+    """Actualiza los horarios disponibles en la base de datos"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    
+    # Desactivar todos los horarios
+    c.execute('UPDATE horarios_disponibles SET activo = 0')
+    
+    # Activar solo los horarios proporcionados
+    for hora in horarios:
+        c.execute('''
+            INSERT OR REPLACE INTO horarios_disponibles (hora, activo) 
+            VALUES (?, 1)
+        ''', (hora,))
+    
+    conn.commit()
+    conn.close()
+
+# Obtener servicios desde la BD
+def obtener_servicios():
+    """Obtiene todos los servicios activos desde la base de datos"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('SELECT nombre, precio, descripcion, imagen_url FROM servicios WHERE activo = 1 ORDER BY nombre')
+    servicios = []
+    for row in c.fetchall():
+        servicios.append({
+            'nombre': row[0],
+            'precio': row[1],
+            'desc': row[2],
+            'img': row[3]
+        })
+    conn.close()
+    return servicios
+
+# Actualizar servicios
+def actualizar_servicios(servicios):
+    """Actualiza los servicios en la base de datos"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    
+    # Desactivar todos los servicios
+    c.execute('UPDATE servicios SET activo = 0')
+    
+    # Activar/insertar solo los servicios proporcionados
+    for servicio in servicios:
+        c.execute('''
+            INSERT OR REPLACE INTO servicios (nombre, precio, descripcion, imagen_url, activo) 
+            VALUES (?, ?, ?, ?, 1)
+        ''', (servicio['nombre'], servicio['precio'], servicio['descripcion'], servicio['imagen_url']))
+    
     conn.commit()
     conn.close()
 
@@ -159,13 +286,8 @@ def generar_citas_prueba():
         "Corte bob", "Peinado casual", "Tinte natural", "Mechas lowlights", "Secado profesional"
     ]
     
-    # Horarios disponibles
-    horas = [
-        '10:00', '10:30', '11:00', '11:30',
-        '12:00', '12:30', '13:00', '13:30',
-        '16:00', '16:30', '17:00', '17:30',
-        '18:00', '18:30', '19:00', '19:30'
-    ]
+    # Horarios disponibles desde BD
+    horas = obtener_horarios_disponibles()
     
     # Calcular fechas desde hoy hasta final de agosto
     hoy = datetime.date.today()
@@ -268,76 +390,15 @@ def panel():
 def configuracion():
     return render_template("configuracion.html")
 
-@app.route("/chat", methods=["POST"])
-def chat():
-    global nombre_usuario, telefono_usuario, correo_enviado, conversacion_log
-
-    user_message = request.get_json().get("message", "").strip().lower()
-    respuesta = ""
-
-    # Guardamos la conversación
-    conversacion_log.append(f"Usuario: {user_message}")
-
-    # Flujo simple de preguntas y respuestas
-    if any(saludo in user_message for saludo in ["hola", "buenas", "buenos días", "buenas tardes", "buenas noches"]):
-        respuesta = "¡Hola! ¿Qué servicio deseas reservar? (corte, peinado, tinte, lavado)"
-    elif any(serv in user_message for serv in ["corte", "peinado", "tinte", "lavado"]):
-        # Guardar el servicio elegido
-        servicio = next((serv for serv in ["corte", "peinado", "tinte", "lavado"] if serv in user_message), None)
-        respuesta = f"Perfecto, has elegido {servicio}. ¿Para qué día quieres la cita? (por ejemplo: 2024-07-25)"
-    elif re.match(r"\d{4}-\d{2}-\d{2}", user_message):
-        # El usuario ha escrito una fecha
-        dia = normalizar_fecha(user_message)
-        # Consultar horas disponibles
-        todas = [
-            '10:00', '10:30', '11:00', '11:30',
-            '12:00', '12:30', '13:00', '13:30',
-            '16:00', '16:30', '17:00', '17:30',
-            '18:00', '18:30', '19:00', '19:30'
-        ]
-        ocupadas = horas_ocupadas(dia)
-        libres = [h for h in todas if h not in ocupadas]
-        if libres:
-            respuesta = f"Estas son las horas disponibles para {dia}: {', '.join(libres)}. ¿Qué hora prefieres?"
-        else:
-            respuesta = f"Lo siento, no hay horas disponibles para ese día. Por favor, elige otro día."
-    elif re.match(r"\d{2}:\d{2}", user_message):
-        # El usuario ha escrito una hora
-        respuesta = "Por favor, indícame tu nombre para completar la reserva."
-    elif any(palabra in user_message for palabra in ["me llamo", "soy", "nombre"]):
-        # Extraer nombre
-        nombre = user_message.replace("me llamo","").replace("soy","").replace("nombre","").strip().title()
-        nombre_usuario = nombre
-        respuesta = "Gracias. Ahora, por favor, indícame tu número de teléfono."
-    elif re.match(r"\d{9,}", user_message):
-        telefono_usuario = user_message
-        respuesta = "¡Reserva completada! Te hemos registrado para la cita. Si necesitas cambiar algo, avísanos."
-        correo_enviado = False  # Permitir enviar correo si es necesario
-    else:
-        respuesta = "No he entendido tu mensaje. Por favor, sigue las instrucciones para reservar tu cita."
-
-    conversacion_log.append(f"Asistente: {respuesta}")
-
-    # Enviar correo si ya tenemos nombre y teléfono y aún no se envió
-    if nombre_usuario and telefono_usuario and not correo_enviado:
-        texto_conversacion = "\n".join(conversacion_log)
-        enviar_correo(nombre_usuario, telefono_usuario, texto_conversacion)
-        correo_enviado = True
-
-    return jsonify({"reply": respuesta})
+# Endpoint del chatbot eliminado - no se usa en la aplicación actual
 
 # --- ENDPOINT PARA HORAS DISPONIBLES ---
 @app.route('/horas_disponibles', methods=['POST'])
 def horas_disponibles():
     data = request.get_json()
     dia = normalizar_fecha(data.get('dia'))
-    # Horas posibles (puedes ajustar este rango)
-    todas = [
-        '10:00', '10:30', '11:00', '11:30',
-        '12:00', '12:30', '13:00', '13:30',
-        '16:00', '16:30', '17:00', '17:30',
-        '18:00', '18:30', '19:00', '19:30'
-    ]
+    # Obtener horarios desde la BD
+    todas = obtener_horarios_disponibles()
     ocupadas = horas_ocupadas(dia)
     libres = [h for h in todas if h not in ocupadas]
     return jsonify({'libres': libres})
@@ -377,13 +438,13 @@ def citas_dia():
     total_citas = c.fetchone()[0]
     print(f"📊 Total de citas en BD para {dia}: {total_citas}")
     
-    c.execute('SELECT hora, nombre, servicio, telefono FROM citas WHERE dia = ?', (dia,))
+    c.execute('SELECT id, hora, nombre, servicio, telefono FROM citas WHERE dia = ?', (dia,))
     rows = c.fetchall()
     conn.close()
     
-    ocupadas = [row[0] for row in rows]
+    ocupadas = [row[1] for row in rows]
     citas = [
-        {'hora': row[0], 'nombre': row[1], 'servicio': row[2], 'telefono': row[3], 'dia': formatear_fecha_display(dia)} for row in rows
+        {'id': row[0], 'hora': row[1], 'nombre': row[2], 'servicio': row[3], 'telefono': row[4], 'dia': formatear_fecha_display(dia)} for row in rows
     ]
     
     print(f"📅 Encontradas {len(citas)} citas para {dia}: {[c['hora'] for c in citas]}")
@@ -392,12 +453,7 @@ def citas_dia():
 # --- ENDPOINT: Próximos 20 días laborables y disponibilidad ---
 @app.route('/proximos_dias_disponibles', methods=['GET'])
 def proximos_dias_disponibles():
-    HORAS = [
-        '10:00', '10:30', '11:00', '11:30',
-        '12:00', '12:30', '13:00', '13:30',
-        '16:00', '16:30', '17:00', '17:30',
-        '18:00', '18:30', '19:00', '19:30'
-    ]
+    HORAS = obtener_horarios_disponibles()
     dias = []
     hoy = datetime.date.today()
     hasta = hoy + datetime.timedelta(days=31)
@@ -657,6 +713,86 @@ def generar_horas_disponibles():
         
     except Exception as e:
         return jsonify({'ok': False, 'msg': f'Error al generar horas: {str(e)}'})
+
+# --- ENDPOINTS PARA GESTIONAR HORARIOS DISPONIBLES ---
+
+@app.route('/obtener_horarios_disponibles', methods=['GET'])
+def obtener_horarios_disponibles_endpoint():
+    """Obtiene todos los horarios disponibles"""
+    try:
+        horarios = obtener_horarios_disponibles()
+        return jsonify({'ok': True, 'horarios': horarios})
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'Error al obtener horarios: {str(e)}'})
+
+@app.route('/actualizar_horarios_disponibles', methods=['POST'])
+def actualizar_horarios_disponibles_endpoint():
+    """Actualiza los horarios disponibles"""
+    try:
+        data = request.get_json()
+        horarios = data.get('horarios', [])
+        
+        if not horarios:
+            return jsonify({'ok': False, 'msg': 'No se proporcionaron horarios'})
+        
+        actualizar_horarios_disponibles(horarios)
+        return jsonify({'ok': True, 'msg': 'Horarios actualizados correctamente'})
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'Error al actualizar horarios: {str(e)}'})
+
+@app.route('/generar_horarios_automaticos', methods=['POST'])
+def generar_horarios_automaticos():
+    """Genera horarios automáticamente basados en la configuración del negocio"""
+    try:
+        data = request.get_json()
+        hora_apertura = data.get('horaApertura', '10:00')
+        hora_cierre = data.get('horaCierre', '19:00')
+        intervalo = data.get('intervaloCitas', 30)
+        
+        # Generar horarios
+        horas = []
+        hora_actual = datetime.datetime.strptime(hora_apertura, '%H:%M')
+        hora_fin = datetime.datetime.strptime(hora_cierre, '%H:%M')
+        
+        while hora_actual < hora_fin:
+            horas.append(hora_actual.strftime('%H:%M'))
+            hora_actual += datetime.timedelta(minutes=intervalo)
+        
+        # Actualizar en BD
+        actualizar_horarios_disponibles(horas)
+        
+        return jsonify({'ok': True, 'msg': f'Se generaron {len(horas)} horarios automáticamente', 'horarios': horas})
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'Error al generar horarios: {str(e)}'})
+
+# --- ENDPOINTS PARA GESTIONAR SERVICIOS ---
+
+@app.route('/obtener_servicios', methods=['GET'])
+def obtener_servicios_endpoint():
+    """Obtiene todos los servicios activos"""
+    try:
+        servicios = obtener_servicios()
+        return jsonify({'ok': True, 'servicios': servicios})
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'Error al obtener servicios: {str(e)}'})
+
+@app.route('/actualizar_servicios', methods=['POST'])
+def actualizar_servicios_endpoint():
+    """Actualiza los servicios"""
+    try:
+        data = request.get_json()
+        servicios = data.get('servicios', [])
+        
+        if not servicios:
+            return jsonify({'ok': False, 'msg': 'No se proporcionaron servicios'})
+        
+        actualizar_servicios(servicios)
+        return jsonify({'ok': True, 'msg': 'Servicios actualizados correctamente'})
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'Error al actualizar servicios: {str(e)}'})
 
 if __name__ == "__main__":
     app.run(debug=True)

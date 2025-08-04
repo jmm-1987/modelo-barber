@@ -593,7 +593,7 @@
     document.head.appendChild(styleAnim);
 
     // Lógica para cada opción principal
-    window.opcionPrincipal = function(accion) {
+    window.opcionPrincipal = async function(accion) {
       const btns = document.getElementById('opciones-principales-btns');
       if (btns) btns.remove();
       // Limpiar el chat
@@ -663,8 +663,10 @@
         scrollToBottom();
         // No añadir el botón grande, solo el animado (se añade por setTimeout más abajo)
       } else if (accion === 'solicitarCita') {
-        // Pantalla de servicios para reservar
-        chat.innerHTML = `<div style='margin-top:60px;'>` + renderServicios('¿Qué servicio deseas reservar?', 'elegirServicio', true) + `</div>`;
+              // Pantalla de servicios para reservar
+      chat.innerHTML = `<div style='margin-top:60px;'><div style='text-align:center; color:#fff;'>Cargando servicios...</div></div>`;
+      const serviciosHtml = await renderServicios('¿Qué servicio deseas reservar?', 'elegirServicio', true);
+      chat.innerHTML = `<div style='margin-top:60px;'>` + serviciosHtml + `</div>`;
         // Scroll arriba al abrir
         chat.scrollTop = 0;
         // Sin flecha de scroll en el proceso de reservas
@@ -728,16 +730,40 @@
     }
 
     // Función reutilizable para renderizar el bloque de servicios
-    function renderServicios(titulo, onClickServicio, mostrarVolver = true, reservarActivo = true) {
-      const servicios = [
-        {nombre: 'Corte de mujer', precio: '18€', img: 'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Corte personalizado, asesoría de estilo y acabado profesional.'},
-        {nombre: 'Corte de hombre', precio: '12€', img: 'https://images.pexels.com/photos/3993450/pexels-photo-3993450.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Corte clásico o moderno, incluye lavado y peinado.'},
-        {nombre: 'Peinado', precio: '15€', img: 'https://images.pexels.com/photos/3993451/pexels-photo-3993451.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Peinados para eventos, fiestas o el día a día.'},
-        {nombre: 'Tinte raíz', precio: '22€', img: 'https://images.pexels.com/photos/3993452/pexels-photo-3993452.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Coloración de raíces con productos de alta calidad.'},
-        {nombre: 'Mechas', precio: '35€', img: 'https://images.pexels.com/photos/3993453/pexels-photo-3993453.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Mechas naturales o fantasía, técnica a elegir.'},
-        {nombre: 'Lavado y secado', precio: '8€', img: 'https://images.pexels.com/photos/3993454/pexels-photo-3993454.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Lavado relajante y secado con brushing.'},
-        {nombre: 'Tratamiento hidratante', precio: '20€', img: 'https://images.pexels.com/photos/3993455/pexels-photo-3993455.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Recupera el brillo y la suavidad de tu cabello.'}
-      ];
+    async function renderServicios(titulo, onClickServicio, mostrarVolver = true, reservarActivo = true) {
+      // Cargar servicios desde la base de datos
+      let servicios = [];
+      try {
+        const response = await fetch('/obtener_servicios');
+        const data = await response.json();
+        if (data.ok) {
+          servicios = data.servicios;
+        } else {
+          console.error('Error al cargar servicios:', data.msg);
+          // Fallback a servicios por defecto si hay error
+          servicios = [
+            {nombre: 'Corte de mujer', precio: '18€', img: 'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Corte personalizado, asesoría de estilo y acabado profesional.'},
+            {nombre: 'Corte de hombre', precio: '12€', img: 'https://images.pexels.com/photos/3993450/pexels-photo-3993450.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Corte clásico o moderno, incluye lavado y peinado.'},
+            {nombre: 'Peinado', precio: '15€', img: 'https://images.pexels.com/photos/3993451/pexels-photo-3993451.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Peinados para eventos, fiestas o el día a día.'},
+            {nombre: 'Tinte raíz', precio: '22€', img: 'https://images.pexels.com/photos/3993452/pexels-photo-3993452.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Coloración de raíces con productos de alta calidad.'},
+            {nombre: 'Mechas', precio: '35€', img: 'https://images.pexels.com/photos/3993453/pexels-photo-3993453.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Mechas naturales o fantasía, técnica a elegir.'},
+            {nombre: 'Lavado y secado', precio: '8€', img: 'https://images.pexels.com/photos/3993454/pexels-photo-3993454.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Lavado relajante y secado con brushing.'},
+            {nombre: 'Tratamiento hidratante', precio: '20€', img: 'https://images.pexels.com/photos/3993455/pexels-photo-3993455.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Recupera el brillo y la suavidad de tu cabello.'}
+          ];
+        }
+      } catch (error) {
+        console.error('Error al cargar servicios:', error);
+        // Fallback a servicios por defecto
+        servicios = [
+          {nombre: 'Corte de mujer', precio: '18€', img: 'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Corte personalizado, asesoría de estilo y acabado profesional.'},
+          {nombre: 'Corte de hombre', precio: '12€', img: 'https://images.pexels.com/photos/3993450/pexels-photo-3993450.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Corte clásico o moderno, incluye lavado y peinado.'},
+          {nombre: 'Peinado', precio: '15€', img: 'https://images.pexels.com/photos/3993451/pexels-photo-3993451.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Peinados para eventos, fiestas o el día a día.'},
+          {nombre: 'Tinte raíz', precio: '22€', img: 'https://images.pexels.com/photos/3993452/pexels-photo-3993452.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Coloración de raíces con productos de alta calidad.'},
+          {nombre: 'Mechas', precio: '35€', img: 'https://images.pexels.com/photos/3993453/pexels-photo-3993453.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Mechas naturales o fantasía, técnica a elegir.'},
+          {nombre: 'Lavado y secado', precio: '8€', img: 'https://images.pexels.com/photos/3993454/pexels-photo-3993454.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Lavado relajante y secado con brushing.'},
+          {nombre: 'Tratamiento hidratante', precio: '20€', img: 'https://images.pexels.com/photos/3993455/pexels-photo-3993455.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop', desc: 'Recupera el brillo y la suavidad de tu cabello.'}
+        ];
+      }
       let html = `<div style='font-size:20px; color:#fff; font-weight:bold; text-align:center; margin:18px 0 18px 0;'>${titulo}</div>`;
       html += `<div id='servicios-lista' style='display:flex; flex-wrap:wrap; justify-content:center; gap:22px; margin-bottom:18px;'>`;
       html += servicios.map((s,i) => `
@@ -773,8 +799,9 @@
     }
 
     // La función mostrarServicios solo llama a la función reutilizable con el título de selección
-    function mostrarServicios() {
-      chat.innerHTML = renderServicios('¿Qué servicio deseas reservar?', 'elegirServicio', true);
+    async function mostrarServicios() {
+      const serviciosHtml = await renderServicios('¿Qué servicio deseas reservar?', 'elegirServicio', true);
+      chat.innerHTML = serviciosHtml;
       scrollToBottom();
       document.getElementById('btn-volver-servicio-lista').onclick = function() {
         chat.innerHTML = '';
