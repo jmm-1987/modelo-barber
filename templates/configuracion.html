@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Configuración - BarberShop</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      /* Fondo con imagen local */
+      background: url('/static/fondo.png') no-repeat center center fixed;
+      background-size: cover;
+      margin: 0; 
+      padding: 20px; 
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(40,40,50,0.30); /* Oscurecimiento neutro */
+      z-index: 0;
+      pointer-events: none;
+    }
+    
+    .configuracion-container { 
+      max-width: 800px; 
+      margin: 0 auto; 
+      background: linear-gradient(145deg, #f8f9ff 0%, #e8eaff 100%);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      border: 1px solid #e8eaff;
+      position: relative;
+      z-index: 1;
+      backdrop-filter: blur(8px);
+    }
+    
+    h1 { 
+      background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center; 
+      margin-bottom: 40px;
+      font-size: 32px;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .header-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #8B4513;
+    }
+    
+    .btn-volver {
+      background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      font-family: 'Times New Roman', serif;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn-volver:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+      text-decoration: none;
+      color: white;
+    }
+    
+    .configuracion-seccion {
+      margin-bottom: 35px;
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e9ecef;
+    }
+    
+    .configuracion-seccion h3 {
+      color: #8B4513;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      font-family: 'Times New Roman', serif;
+      border-bottom: 2px solid #f8f9fa;
+      padding-bottom: 10px;
+    }
+    
+    .configuracion-grupo {
+      margin-bottom: 20px;
+    }
+    
+    .configuracion-grupo label {
+      display: block;
+      color: #495057;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-family: 'Georgia', serif;
+      font-size: 16px;
+    }
+    
+    .configuracion-grupo input,
+    .configuracion-grupo select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #8B4513;
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: 'Georgia', serif;
+      background: white;
+      color: #333;
+      transition: all 0.3s ease;
+    }
+    
+    .configuracion-grupo input:focus,
+    .configuracion-grupo select:focus {
+      outline: none;
+      border-color: #654321;
+      box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+    }
+    
+    .horarios-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    
+    .btn-guardar {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      font-family: 'Times New Roman', serif;
+      font-size: 18px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+      width: 100%;
+      margin-top: 30px;
+    }
+    
+    .btn-guardar:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+    }
+    
+    .btn-guardar:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+    }
+    
+    .mensaje-estado {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      font-weight: 600;
+      text-align: center;
+      display: none;
+    }
+    
+    .mensaje-exito {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .mensaje-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    /* Responsive para móvil */
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+      
+      .configuracion-container {
+        margin: 0;
+        padding: 25px 20px;
+        border-radius: 15px;
+        max-width: 100%;
+      }
+      
+      h1 {
+        font-size: 28px;
+        margin-bottom: 30px;
+      }
+      
+      .header-actions {
+        flex-direction: column;
+        gap: 20px;
+        align-items: stretch;
+      }
+      
+      .btn-volver {
+        text-align: center;
+        justify-content: center;
+      }
+      
+      .configuracion-seccion {
+        padding: 20px;
+        margin-bottom: 25px;
+      }
+      
+      .configuracion-seccion h3 {
+        font-size: 18px;
+      }
+      
+      .configuracion-grupo input,
+      .configuracion-grupo select {
+        font-size: 16px;
+        padding: 15px;
+      }
+      
+      .horarios-container {
+        grid-template-columns: 1fr;
+        gap: 15px;
+      }
+      
+      .btn-guardar {
+        padding: 18px 25px;
+        font-size: 16px;
+      }
+    }
+    
+    /* Responsive para pantallas muy pequeñas */
+    @media (max-width: 480px) {
+      body {
+        padding: 5px;
+      }
+      
+      .configuracion-container {
+        padding: 20px 15px;
+      }
+      
+      h1 {
+        font-size: 24px;
+        margin-bottom: 25px;
+      }
+      
+      .configuracion-seccion {
+        padding: 15px;
+      }
+      
+      .configuracion-grupo input,
+      .configuracion-grupo select {
+        font-size: 16px;
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="configuracion-container">
+    <div class="header-actions">
+      <h1>⚙️ Configuración del Negocio</h1>
+      <a href="/panel" class="btn-volver">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+        </svg>
+        Volver al Panel
+      </a>
+    </div>
+    
+    <form id="form-configuracion">
+      <div class="configuracion-seccion">
+        <h3>🕒 Horarios de Apertura</h3>
+        <div class="horarios-container">
+          <div class="configuracion-grupo">
+            <label for="hora-apertura">Hora de Apertura:</label>
+            <input type="time" id="hora-apertura" name="hora-apertura" value="10:00" required>
+          </div>
+          <div class="configuracion-grupo">
+            <label for="hora-cierre">Hora de Cierre:</label>
+            <input type="time" id="hora-cierre" name="hora-cierre" value="19:00" required>
+          </div>
+        </div>
+        <div class="configuracion-grupo">
+          <label for="dias-laborables">Días Laborables:</label>
+          <select id="dias-laborables" name="dias-laborables" required>
+            <option value="lunes-viernes">Lunes a Viernes</option>
+            <option value="lunes-sabado">Lunes a Sábado</option>
+            <option value="todos-los-dias">Todos los Días</option>
+            <option value="personalizado">Personalizado</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="configuracion-seccion">
+        <h3>📅 Configuración de Citas</h3>
+        <div class="configuracion-grupo">
+          <label for="intervalo-citas">Intervalo entre Citas (minutos):</label>
+          <select id="intervalo-citas" name="intervalo-citas" required>
+            <option value="15">15 minutos</option>
+            <option value="30" selected>30 minutos</option>
+            <option value="45">45 minutos</option>
+            <option value="60">1 hora</option>
+          </select>
+        </div>
+        <div class="configuracion-grupo">
+          <label for="anticipacion-reserva">Anticipación Mínima (horas):</label>
+          <input type="number" id="anticipacion-reserva" name="anticipacion-reserva" value="2" min="0" max="72" required>
+        </div>
+      </div>
+      
+      <button type="submit" class="btn-guardar" id="btn-guardar">
+        💾 Guardar Configuración
+      </button>
+      
+      <div class="mensaje-estado" id="mensaje-estado"></div>
+    </form>
+  </div>
+
+  <script>
+    // Cargar configuración actual al iniciar la página
+    document.addEventListener('DOMContentLoaded', function() {
+      cargarConfiguracionActual();
+    });
+
+    async function cargarConfiguracionActual() {
+      try {
+        const response = await fetch('/obtener_configuracion');
+        const data = await response.json();
+        
+        if (data.ok) {
+          const config = data.configuracion;
+          
+          // Llenar el formulario con los valores actuales
+          document.getElementById('hora-apertura').value = config.horaApertura;
+          document.getElementById('hora-cierre').value = config.horaCierre;
+          document.getElementById('dias-laborables').value = config.diasLaborables;
+          document.getElementById('intervalo-citas').value = config.intervaloCitas;
+          document.getElementById('anticipacion-reserva').value = config.anticipacionReserva;
+        } else {
+          console.error('Error al cargar configuración:', data.msg);
+          mostrarMensaje('Error al cargar la configuración actual', 'error');
+        }
+      } catch (error) {
+        console.error('Error de conexión al cargar configuración:', error);
+        mostrarMensaje('Error de conexión al cargar la configuración', 'error');
+      }
+    }
+
+    // Manejar el envío del formulario de configuración
+    document.getElementById('form-configuracion').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const btnGuardar = document.getElementById('btn-guardar');
+      const mensajeEstado = document.getElementById('mensaje-estado');
+      
+      // Deshabilitar botón y mostrar estado de carga
+      btnGuardar.disabled = true;
+      btnGuardar.innerHTML = '⏳ Guardando...';
+      ocultarMensaje();
+      
+      const configuracion = {
+        horaApertura: document.getElementById('hora-apertura').value,
+        horaCierre: document.getElementById('hora-cierre').value,
+        diasLaborables: document.getElementById('dias-laborables').value,
+        intervaloCitas: parseInt(document.getElementById('intervalo-citas').value),
+        anticipacionReserva: parseInt(document.getElementById('anticipacion-reserva').value)
+      };
+
+      try {
+        const response = await fetch('/guardar_configuracion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(configuracion)
+        });
+        
+        const data = await response.json();
+        
+        if (data.ok) {
+          mostrarMensaje('✅ Configuración guardada exitosamente. Los cambios se aplicarán en las próximas citas.', 'exito');
+        } else {
+          mostrarMensaje(`❌ Error al guardar configuración: ${data.msg}`, 'error');
+        }
+      } catch (error) {
+        mostrarMensaje(`❌ Error de conexión: ${error.message}`, 'error');
+      } finally {
+        // Restaurar botón
+        btnGuardar.disabled = false;
+        btnGuardar.innerHTML = '💾 Guardar Configuración';
+      }
+    });
+
+    function mostrarMensaje(texto, tipo) {
+      const mensajeEstado = document.getElementById('mensaje-estado');
+      mensajeEstado.textContent = texto;
+      mensajeEstado.className = `mensaje-estado mensaje-${tipo}`;
+      mensajeEstado.style.display = 'block';
+      
+      // Auto-ocultar mensajes de éxito después de 5 segundos
+      if (tipo === 'exito') {
+        setTimeout(() => {
+          ocultarMensaje();
+        }, 5000);
+      }
+    }
+
+    function ocultarMensaje() {
+      const mensajeEstado = document.getElementById('mensaje-estado');
+      mensajeEstado.style.display = 'none';
+    }
+  </script>
+</body>
+</html> 

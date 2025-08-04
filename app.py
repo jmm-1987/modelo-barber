@@ -147,7 +147,7 @@ def generar_citas_prueba():
         "Lucía Hernández", "Paula Castro", "Adriana Morales", "Claudia Silva", "Valentina Rojas",
         "Camila Mendoza", "Sara Herrera", "Daniela Vega", "Gabriela Fuentes", "Carolina Reyes",
         "Andrea Morales", "Natalia Jiménez", "Valeria Torres", "Mariana Silva", "Fernanda Castro",
-        "Isabella Rojas", "Sofía Mendoza", "Emma Herrera", "Olivia Vega", "Ava Fuentes",
+        "Sofía Mendoza", "Emma Herrera", "Olivia Vega", "Ava Fuentes",
         "Mia Reyes", "Charlotte Morales", "Amelia Jiménez", "Harper Torres", "Evelyn Silva"
     ]
     
@@ -263,6 +263,10 @@ def index():
 @app.route("/panel")
 def panel():
     return render_template("panel.html")
+
+@app.route("/configuracion")
+def configuracion():
+    return render_template("configuracion.html")
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -418,7 +422,7 @@ def enviar_recordatorio():
     fecha = data.get('fecha')
     hora = data.get('hora')
     servicio = data.get('servicio')
-    nombre_peluqueria = 'Peluquería JM'  # Puedes cambiarlo por el nombre real
+    nombre_peluqueria = 'BarberShop'  # Nombre del negocio
     try:
         # Configuración de email
         email_host = os.getenv("EMAIL_HOST")
@@ -496,6 +500,163 @@ def borrar_cita():
             return jsonify({'ok': False, 'msg': 'No se encontró la cita'})
     except Exception as e:
         return jsonify({'ok': False, 'msg': str(e)})
+
+# --- RUTAS PARA CONFIGURACIÓN DEL NEGOCIO ---
+
+@app.route('/guardar_configuracion', methods=['POST'])
+def guardar_configuracion():
+    """Guarda la configuración del negocio en la base de datos"""
+    try:
+        data = request.get_json()
+        
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        
+        # Crear tabla de configuración si no existe
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS configuracion_negocio (
+                id INTEGER PRIMARY KEY,
+                hora_apertura TEXT,
+                hora_cierre TEXT,
+                dias_laborables TEXT,
+                duracion_corte INTEGER,
+                duracion_barba INTEGER,
+                duracion_combo INTEGER,
+                duracion_tratamiento INTEGER,
+                intervalo_citas INTEGER,
+                anticipacion_reserva INTEGER,
+                fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Insertar o actualizar configuración
+        c.execute('''
+            INSERT OR REPLACE INTO configuracion_negocio 
+            (id, hora_apertura, hora_cierre, dias_laborables, 
+             duracion_corte, duracion_barba, duracion_combo, duracion_tratamiento,
+             intervalo_citas, anticipacion_reserva)
+            VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            data.get('horaApertura'),
+            data.get('horaCierre'),
+            data.get('diasLaborables'),
+            data.get('duracionCorte'),
+            data.get('duracionBarba'),
+            data.get('duracionCombo'),
+            data.get('duracionTratamiento'),
+            data.get('intervaloCitas'),
+            data.get('anticipacionReserva')
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'ok': True, 'msg': 'Configuración guardada exitosamente'})
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'Error al guardar configuración: {str(e)}'})
+
+@app.route('/obtener_configuracion', methods=['GET'])
+def obtener_configuracion():
+    """Obtiene la configuración actual del negocio"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        
+        # Crear tabla si no existe
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS configuracion_negocio (
+                id INTEGER PRIMARY KEY,
+                hora_apertura TEXT,
+                hora_cierre TEXT,
+                dias_laborables TEXT,
+                duracion_corte INTEGER,
+                duracion_barba INTEGER,
+                duracion_combo INTEGER,
+                duracion_tratamiento INTEGER,
+                intervalo_citas INTEGER,
+                anticipacion_reserva INTEGER,
+                fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Obtener configuración actual
+        c.execute('SELECT * FROM configuracion_negocio WHERE id = 1')
+        row = c.fetchone()
+        conn.close()
+        
+        if row:
+            config = {
+                'horaApertura': row[1],
+                'horaCierre': row[2],
+                'diasLaborables': row[3],
+                'duracionCorte': row[4],
+                'duracionBarba': row[5],
+                'duracionCombo': row[6],
+                'duracionTratamiento': row[7],
+                'intervaloCitas': row[8],
+                'anticipacionReserva': row[9]
+            }
+        else:
+            # Configuración por defecto
+            config = {
+                'horaApertura': '10:00',
+                'horaCierre': '19:00',
+                'diasLaborables': 'lunes-viernes',
+                'duracionCorte': 30,
+                'duracionBarba': 20,
+                'duracionCombo': 45,
+                'duracionTratamiento': 60,
+                'intervaloCitas': 30,
+                'anticipacionReserva': 2
+            }
+        
+        return jsonify({'ok': True, 'configuracion': config})
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'Error al obtener configuración: {str(e)}'})
+
+@app.route('/generar_horas_disponibles', methods=['POST'])
+def generar_horas_disponibles():
+    """Genera las horas disponibles basadas en la configuración del negocio"""
+    try:
+        data = request.get_json()
+        fecha = data.get('fecha')
+        
+        # Obtener configuración actual
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute('SELECT hora_apertura, hora_cierre, intervalo_citas FROM configuracion_negocio WHERE id = 1')
+        row = c.fetchone()
+        conn.close()
+        
+        if row:
+            hora_apertura = row[0]
+            hora_cierre = row[1]
+            intervalo = row[2]
+        else:
+            # Valores por defecto
+            hora_apertura = '10:00'
+            hora_cierre = '19:00'
+            intervalo = 30
+        
+        # Generar horas disponibles
+        horas = []
+        hora_actual = datetime.datetime.strptime(hora_apertura, '%H:%M')
+        hora_fin = datetime.datetime.strptime(hora_cierre, '%H:%M')
+        
+        while hora_actual < hora_fin:
+            horas.append(hora_actual.strftime('%H:%M'))
+            hora_actual += datetime.timedelta(minutes=intervalo)
+        
+        # Filtrar horas ocupadas
+        ocupadas = horas_ocupadas(fecha)
+        disponibles = [h for h in horas if h not in ocupadas]
+        
+        return jsonify({'ok': True, 'horas': disponibles})
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'Error al generar horas: {str(e)}'})
 
 if __name__ == "__main__":
     app.run(debug=True)

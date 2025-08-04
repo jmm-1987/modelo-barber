@@ -7,23 +7,37 @@
   <style>
     body { 
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      /* Fondo con imagen local */
+      background: url('/static/fondo.png') no-repeat center center fixed;
+      background-size: cover;
       margin: 0; 
       padding: 20px; 
       min-height: 100vh;
       overflow-x: hidden;
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(40,40,50,0.30); /* Oscurecimiento neutro */
+      z-index: 0;
+      pointer-events: none;
     }
     .panel-container { 
-      max-width: 1200px; 
-      margin: 0 auto; 
-      background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
-      border-radius: 20px; 
-      box-shadow: 0 20px 60px rgba(0,0,0,0.15); 
-      padding: 40px;
-      border: 1px solid rgba(255,255,255,0.2);
-    }
+  max-width: 1200px; 
+  margin: 0 auto; 
+  background: transparent;
+  border-radius: 0; 
+  box-shadow: none; 
+  padding: 40px;
+  border: none;
+  position: relative;
+  z-index: 1;
+  backdrop-filter: none;
+}
     h1 { 
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -39,9 +53,10 @@
       gap: 8px;
       margin-top: 30px;
       padding: 20px;
-      background: linear-gradient(145deg, #f8f9ff 0%, #ffffff 100%);
+      background: rgba(255, 255, 255, 0.05);
       border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(8px);
     }
     
     .calendario-diario {
@@ -50,14 +65,14 @@
     }
     
     .dia-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
       color: white;
       padding: 25px 20px;
       text-align: center;
       border-radius: 16px 16px 0 0;
       font-size: 20px;
       font-weight: 700;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 4px 15px rgba(26, 26, 26, 0.3);
       position: relative;
       overflow: hidden;
     }
@@ -173,14 +188,14 @@
       background: #1565c0;
     }
     .header-dia {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
       color: white;
       padding: 20px 12px;
       text-align: center;
       font-weight: 700;
       border-radius: 16px 16px 0 0;
       font-size: 16px;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 4px 15px rgba(26, 26, 26, 0.3);
       position: relative;
       overflow: hidden;
     }
@@ -222,16 +237,16 @@
       margin: 2px;
     }
     .celda-hora.libre {
-      background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%);
-      color: #0369a1;
+      background: linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%);
+      color: #ffffff;
       transition: all 0.3s ease;
-      border: 2px solid #0ea5e9;
+      border: 2px solid #333;
     }
     .celda-hora.libre:hover {
-      background: linear-gradient(145deg, #0ea5e9 0%, #0284c7 100%);
+      background: linear-gradient(145deg, #000000 0%, #1a1a1a 100%);
       color: white;
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
     }
     
     .celda-hora.hoy {
@@ -273,26 +288,26 @@
       top: 4px;
       left: 4px;
       right: 4px;
-      background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
+      background: linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%);
       border-radius: 8px;
       padding: 6px 8px;
       font-size: 11px;
       line-height: 1.3;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       cursor: pointer;
       transition: all 0.3s ease;
       z-index: 5;
       transform-origin: center center;
-      border: 1px solid rgba(245, 158, 11, 0.2);
+      border: 1px solid #333;
     }
     .cita-info:hover {
       transform: scale(1.15);
       z-index: 9999;
-      background: linear-gradient(145deg, #ffffff 0%, #f0f9ff 100%);
-      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+      background: linear-gradient(145deg, #000000 0%, #1a1a1a 100%);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.5);
       font-size: 13px;
       padding: 8px 10px;
-      border: 2px solid #0ea5e9;
+      border: 2px solid #333;
     }
     .cita-nombre {
       font-weight: 700;
@@ -315,38 +330,44 @@
       align-items: center;
     }
     .btn-nav {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
+      background: linear-gradient(135deg, #d4a574 0%, #b8860b 100%);
+      color: #8B4513;
+      border: 2px solid #8B4513;
       padding: 12px 24px;
-      border-radius: 30px;
+      border-radius: 8px;
       cursor: pointer;
-      font-weight: 600;
+      font-weight: 700;
       font-size: 14px;
+      font-family: 'Times New Roman', serif;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
     .btn-nav:hover {
       transform: translateY(-3px);
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      box-shadow: 0 8px 25px rgba(139, 69, 19, 0.4);
+      background: linear-gradient(135deg, #b8860b 0%, #8B4513 100%);
+      color: #f5f5dc;
     }
     .semana-actual {
       font-size: 18px;
       font-weight: bold;
-      color: #333;
+      color: white;
       min-width: 200px;
       text-align: center;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
     }
     .resumen {
-      background: linear-gradient(145deg, #f8f9ff 0%, #e8eaff 100%);
+      background: linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%);
       border-radius: 15px;
       padding: 25px;
       margin-top: 30px;
-      border: 1px solid #e8eaff;
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.1);
+      border: 1px solid #333;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
     }
     .resumen h3 {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -361,22 +382,22 @@
       margin-top: 15px;
     }
     .stat {
-      background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
+      background: linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%);
       padding: 20px;
       border-radius: 12px;
       text-align: center;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1);
-      border: 1px solid #e8eaff;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      border: 1px solid #333;
       transition: all 0.3s ease;
     }
     .stat:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
     }
     .stat-numero {
       font-size: 28px;
       font-weight: 700;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -391,6 +412,9 @@
     @media (max-width: 768px) {
       body {
         padding: 10px;
+        /* Fondo responsivo en móvil */
+        background: url('/static/fondo.png') no-repeat center center fixed;
+        background-size: cover;
       }
       
       .panel-container {
@@ -425,25 +449,31 @@
         padding: 15px 20px;
         font-size: 16px;
         margin: 0 3px;
-        border-radius: 25px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        font-weight: 600;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #d4a574 0%, #b8860b 100%);
+        color: #8B4513;
+        border: 2px solid #8B4513;
+        font-weight: 700;
+        font-family: 'Georgia', serif;
         transition: all 0.3s ease;
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 8px 25px rgba(139, 69, 19, 0.3);
         min-width: 80px;
         min-height: 50px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
       }
       
       .dia-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 8px 25px rgba(139, 69, 19, 0.4);
+        background: linear-gradient(135deg, #b8860b 0%, #8B4513 100%);
+        color: #f5f5dc;
       }
       
       .dia-btn.activo {
-        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-        box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+        background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
+        color: #f5f5dc;
+        box-shadow: 0 6px 20px rgba(139, 69, 19, 0.4);
       }
       
       .dia-btn.hoy {
@@ -477,9 +507,17 @@
       .btn-nav {
         padding: 15px 25px;
         font-size: 16px;
-        border-radius: 30px;
+        border-radius: 8px;
         min-height: 50px;
         min-width: 120px;
+        background: linear-gradient(135deg, #d4a574 0%, #b8860b 100%);
+        color: #2c1810;
+        border: 2px solid #8b4513;
+        font-weight: 700;
+        font-family: 'Georgia', serif;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
       }
       
       .semana-actual {
@@ -583,36 +621,36 @@
       }
       
       .opcion-whatsapp {
-        background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
         color: white;
       }
       
       .opcion-whatsapp:hover {
         transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(37, 211, 102, 0.4);
-        border-color: #25d366;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        border-color: #333;
       }
       
       .opcion-llamar {
-        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
         color: white;
       }
       
       .opcion-llamar:hover {
         transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
-        border-color: #3b82f6;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        border-color: #333;
       }
       
       .opcion-eliminar {
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
         color: white;
       }
       
       .opcion-eliminar:hover {
         transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
-        border-color: #ef4444;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        border-color: #333;
       }
     }
     
@@ -680,6 +718,40 @@
         width: 16px;
         height: 16px;
       }
+      
+      /* Estilos para el botón de configuración */
+      .configuracion-container {
+        text-align: center;
+        margin-bottom: 25px;
+      }
+      
+      .btn-configuracion {
+        background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
+        color: #f5f5dc;
+        border: 2px solid #654321;
+        padding: 12px 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 700;
+        font-family: 'Times New Roman', serif;
+        font-size: 16px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
+        text-decoration: none;
+        display: inline-block;
+      }
+      
+      .btn-configuracion:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(139, 69, 19, 0.4);
+        background: linear-gradient(135deg, #654321 0%, #8B4513 100%);
+        text-decoration: none;
+        color: #f5f5dc;
+      }
+      
+
     }
   </style>
 </head>
@@ -687,9 +759,16 @@
   <div class="panel-container">
     <h1>📅 Panel de Control de Citas</h1>
     
+    <!-- Botón de Configuración -->
+    <div class="configuracion-container">
+      <a href="/configuracion" class="btn-configuracion">
+        ⚙️ Configuración
+      </a>
+    </div>
+    
     <div class="controles">
       <button class="btn-nav" onclick="cambiarSemana(-1)">← 7 Días Anteriores</button>
-      <button class="btn-nav" onclick="volverHoy()" style="background: #4caf50;">📅 Hoy</button>
+      <button class="btn-nav" onclick="volverHoy()" style="background: linear-gradient(135deg, #8B4513 0%, #654321 100%); color: #f5f5dc; border: 2px solid #654321;">📅 Hoy</button>
       <div class="semana-actual" id="semana-actual"></div>
       <button class="btn-nav" onclick="cambiarSemana(1)">7 Días Siguientes →</button>
     </div>
@@ -722,16 +801,18 @@
     <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px; border: 2px dashed #dee2e6;">
       <h4 style="color: #6c757d; margin-top: 0;">🛠️ Herramientas de Desarrollo</h4>
       <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-        <button onclick="generarCitasPrueba()" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+        <button onclick="generarCitasPrueba()" style="background: linear-gradient(135deg, #d4a574 0%, #b8860b 100%); color: #2c1810; border: 2px solid #8b4513; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 700; font-family: 'Georgia', serif; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);">
           🎲 Generar Citas de Prueba
         </button>
-        <button onclick="limpiarCitas()" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+        <button onclick="limpiarCitas()" style="background: linear-gradient(135deg, #d4a574 0%, #b8860b 100%); color: #2c1810; border: 2px solid #8b4513; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 700; font-family: 'Georgia', serif; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);">
           🗑️ Limpiar Todas las Citas
         </button>
       </div>
       <div id="mensaje-desarrollo" style="margin-top: 10px; font-size: 14px; color: #6c757d;"></div>
     </div>
   </div>
+
+
 
   <script>
     const HORAS = [
@@ -823,8 +904,22 @@
         html += `<div class="header-dia"${claseHoy}>${obtenerNombreDia(dia)}<br>${dia.getDate()}</div>`;
       }
 
+      // Obtener configuración del negocio para generar horas
+      let horasConfiguradas = HORAS; // Usar horas por defecto si no hay configuración
+      try {
+        const response = await fetch('/obtener_configuracion');
+        const data = await response.json();
+        if (data.ok) {
+          // Generar horas basadas en la configuración
+          const config = data.configuracion;
+          horasConfiguradas = await generarHorasDesdeConfiguracion(config);
+        }
+      } catch (error) {
+        console.error('Error al obtener configuración:', error);
+      }
+
       // Crear filas de horas
-      for (const hora of HORAS) {
+      for (const hora of horasConfiguradas) {
         html += `<div class="header-hora">${hora}</div>`;
         
         for (let i = 0; i < 7; i++) {
@@ -848,6 +943,26 @@
 
       // Cargar datos de citas para toda la semana
       await cargarCitasSemana();
+    }
+
+    async function generarHorasDesdeConfiguracion(config) {
+      try {
+        const response = await fetch('/generar_horas_disponibles', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fecha: formatearFechaAPI(new Date()) })
+        });
+        
+        const data = await response.json();
+        if (data.ok) {
+          return data.horas;
+        }
+      } catch (error) {
+        console.error('Error al generar horas:', error);
+      }
+      
+      // Si hay error, usar horas por defecto
+      return HORAS;
     }
 
     async function cargarCitasSemana() {
@@ -950,6 +1065,23 @@
       }
       diaSelector.innerHTML = selectorHtml;
       
+      // Obtener horas configuradas para el día
+      let horasConfiguradas = HORAS;
+      try {
+        const response = await fetch('/generar_horas_disponibles', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fecha: formatearFechaAPI(diaActual) })
+        });
+        
+        const dataHoras = await response.json();
+        if (dataHoras.ok) {
+          horasConfiguradas = dataHoras.horas;
+        }
+      } catch (error) {
+        console.error('Error al obtener horas configuradas:', error);
+      }
+      
       // Crear lista de horas
       let horasHtml = '';
       
@@ -965,7 +1097,7 @@
         const data = await res.json();
         console.log(`📱 Móvil - Citas encontradas:`, data.citas);
         
-        for (const hora of HORAS) {
+        for (const hora of horasConfiguradas) {
           const cita = data.citas.find(c => c.hora === hora);
           let clase = 'hora-item libre';
           let contenido = `<div class="hora-texto">${hora}</div><div class="cita-detalle">Libre</div>`;
@@ -1005,7 +1137,7 @@
       } catch (error) {
         console.error('Error cargando citas del día:', error);
         // Mostrar horas libres por defecto
-        for (const hora of HORAS) {
+        for (const hora of horasConfiguradas) {
           horasHtml += `<div class="hora-item libre"><div class="hora-texto">${hora}</div><div class="cita-detalle">Libre</div></div>`;
         }
       }
@@ -1293,6 +1425,8 @@
         mensajeDiv.innerHTML = `❌ Error de conexión: ${error.message}`;
       }
     }
+
+
   </script>
 </body>
 </html> 

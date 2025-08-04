@@ -342,20 +342,13 @@
       position: fixed;
       top: 18px;
       right: 24px;
-      font-family: 'Oswald', Arial, sans-serif;
-      color: #fff;
-      font-size: 18px;
-      font-weight: 400;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
       z-index: 10000;
       pointer-events: none;
-      text-align: right;
-      background: linear-gradient(rgba(255,255,255,0.15), rgba(255,255,255,0.15)),
-        url('/static/fondo.png') center center/cover no-repeat;
+      text-align: center;
       padding: 8px 16px;
-      border-radius: 8px;
-      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     
 
@@ -385,7 +378,9 @@
 
   <!-- Widget del chatbot -->
   <div id="chat-widget">
-    <div class="header-fixed">SCARLETT & ISABELLA</div>
+    <div class="header-fixed">
+      <img src="/static/logo.png" alt="BarberShop" style="height: 120px; width: auto; max-width: 300px; object-fit: contain;">
+    </div>
     <div id="chat-body"></div>
     <!-- Eliminado el input y el botón de enviar -->
     <!-- <div id="chat-input">
@@ -500,7 +495,7 @@
       chat.innerHTML = '';
       // Siempre mostrar la pantalla de inicio completa
       chat.innerHTML += `<div class="header-container" style="margin-top:20px;">
-        <div class="welcome-message">¡Hola!<br>Bienvenida a Peluquería JM, ¿en qué podemos ayudarte hoy?</div>
+        <div class="welcome-message">¡Hola!<br>Bienvenido a BarberShop, ¿en qué podemos ayudarte hoy?</div>
       </div>`;
       chat.innerHTML += `<div class="botones-grid">
         <div class='opcion-animada' onclick="opcionPrincipal('consultarHorarios')">
