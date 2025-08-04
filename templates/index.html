@@ -887,7 +887,7 @@
       scrollToBottom();
       
       // Pedir días disponibles al backend
-      const res = await fetch('/proximos_dias_disponibles');
+      const res = await fetch(`/proximos_dias_disponibles?peluquero_id=${peluqueroId}`);
       const data = await res.json();
       renderCalendarioDias(data.dias);
       scrollToBottom();
@@ -902,7 +902,7 @@
       chat.innerHTML = `<div id='calendario-dias'><em>Cargando calendario...</em></div>`;
       scrollToBottom();
       
-      // Pedir días disponibles al backend
+      // Pedir días disponibles al backend (sin filtro de peluquero)
       fetch('/proximos_dias_disponibles')
         .then(res => res.json())
         .then(data => {
@@ -989,7 +989,10 @@
       };
       // Navegación de meses
       document.getElementById('mes-siguiente').onclick = async function() {
-        const res = await fetch('/proximos_dias_disponibles');
+        const url = reserva.peluquero_id ? 
+          `/proximos_dias_disponibles?peluquero_id=${reserva.peluquero_id}` : 
+          '/proximos_dias_disponibles';
+        const res = await fetch(url);
         const data = await res.json();
         renderCalendarioDias(data.dias, mesOffset + 1);
       };
@@ -997,7 +1000,10 @@
       if (btnAnt) {
         btnAnt.onclick = async function() {
           if (mesOffset > 0) {
-            const res = await fetch('/proximos_dias_disponibles');
+            const url = reserva.peluquero_id ? 
+              `/proximos_dias_disponibles?peluquero_id=${reserva.peluquero_id}` : 
+              '/proximos_dias_disponibles';
+            const res = await fetch(url);
             const data = await res.json();
             renderCalendarioDias(data.dias, mesOffset - 1);
           }
@@ -1032,7 +1038,10 @@
       chat.innerHTML += `</div>`;
       document.getElementById('btn-volver-dia').onclick = async function() {
         chat.innerHTML = `<p><strong>Selecciona un día:</strong></p><div id='calendario-dias'><em>Cargando calendario...</em></div>`;
-        const res = await fetch('/proximos_dias_disponibles');
+        const url = reserva.peluquero_id ? 
+          `/proximos_dias_disponibles?peluquero_id=${reserva.peluquero_id}` : 
+          '/proximos_dias_disponibles';
+        const res = await fetch(url);
         const data = await res.json();
         renderCalendarioDias(data.dias);
         scrollToBottom();
@@ -1192,7 +1201,10 @@
       // Botón Volver abajo del todo
       document.getElementById('btn-volver-dia').onclick = async function() {
         chat.innerHTML = `<p><strong>Selecciona un día:</strong></p><div id='calendario-dias'><em>Cargando calendario...</em></div>`;
-        const res = await fetch('/proximos_dias_disponibles');
+        const url = reserva.peluquero_id ? 
+          `/proximos_dias_disponibles?peluquero_id=${reserva.peluquero_id}` : 
+          '/proximos_dias_disponibles';
+        const res = await fetch(url);
         const data = await res.json();
         renderCalendarioDias(data.dias);
         scrollToBottom();

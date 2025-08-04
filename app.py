@@ -364,8 +364,28 @@ def obtener_dias_cerrados():
     conn.close()
     return dias
 
+def verificar_citas_en_fecha(fecha, peluquero_id=None):
+    """Verifica si hay citas reservadas en una fecha específica"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    
+    if peluquero_id is None:
+        # Verificar todas las citas para esa fecha
+        c.execute('SELECT COUNT(*) FROM citas WHERE dia = ?', (fecha,))
+    else:
+        # Verificar citas solo para ese peluquero
+        c.execute('SELECT COUNT(*) FROM citas WHERE dia = ? AND peluquero_id = ?', (fecha, peluquero_id))
+    
+    count = c.fetchone()[0]
+    conn.close()
+    return count > 0
+
 def agregar_dia_cerrado(fecha, motivo='', peluquero_id=None):
     """Agrega un día como cerrado para un peluquero específico o todos"""
+    # Verificar si hay citas reservadas
+    if verificar_citas_en_fecha(fecha, peluquero_id):
+        return False, "No se puede cerrar el día porque hay citas reservadas"
+    
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     try:
@@ -373,14 +393,18 @@ def agregar_dia_cerrado(fecha, motivo='', peluquero_id=None):
                  (fecha, motivo, peluquero_id))
         conn.commit()
         conn.close()
-        return True
+        return True, "Día cerrado agregado correctamente"
     except sqlite3.IntegrityError:
         # Ya existe un registro para esta fecha y peluquero
         conn.close()
-        return False
+        return False, "Ya existe un registro para esta fecha y peluquero"
 
 def agregar_dia_cerrado_todos_peluqueros(fecha, motivo=''):
     """Agrega un día como cerrado para todos los peluqueros"""
+    # Verificar si hay citas reservadas para cualquier peluquero
+    if verificar_citas_en_fecha(fecha):
+        return False, "No se puede cerrar el día porque hay citas reservadas"
+    
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     try:
@@ -395,10 +419,10 @@ def agregar_dia_cerrado_todos_peluqueros(fecha, motivo=''):
         
         conn.commit()
         conn.close()
-        return True
+        return True, "Día cerrado agregado para todos los peluqueros"
     except Exception as e:
         conn.close()
-        return False
+        return False, f"Error al agregar día cerrado: {str(e)}"
 
 def eliminar_dia_cerrado(fecha, peluquero_id=None):
     """Elimina un día de la lista de días cerrados para un peluquero específico o todos"""
@@ -449,17 +473,21 @@ def es_dia_festivo(fecha):
 
 def agregar_dia_festivo(fecha, nombre, tipo='festivo'):
     """Agrega un día festivo"""
+    # Verificar si hay citas reservadas para esa fecha
+    if verificar_citas_en_fecha(fecha):
+        return False, "No se puede marcar como festivo porque hay citas reservadas"
+    
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     try:
         c.execute('INSERT INTO dias_festivos (fecha, nombre, tipo) VALUES (?, ?, ?)', (fecha, nombre, tipo))
         conn.commit()
         conn.close()
-        return True
+        return True, "Día festivo agregado correctamente"
     except sqlite3.IntegrityError:
         # La fecha ya existe
         conn.close()
-        return False
+        return False, "La fecha ya está marcada como festiva"
 
 def eliminar_dia_festivo(fecha):
     """Elimina un día festivo (lo marca como inactivo)"""
@@ -781,6 +809,9 @@ def citas_dia():
 # --- ENDPOINT: Próximos 20 días laborables y disponibilidad ---
 @app.route('/proximos_dias_disponibles', methods=['GET'])
 def proximos_dias_disponibles():
+    # Obtener peluquero_id de los parámetros de la URL
+    peluquero_id = request.args.get('peluquero_id', type=int)
+    
     HORAS = obtener_horarios_disponibles()
     dias = []
     hoy = datetime.date.today()
@@ -788,7 +819,7 @@ def proximos_dias_disponibles():
     dia = hoy
     while dia <= hasta:
         dia_str = dia.strftime('%Y-%m-%d')
-        ocupadas = horas_ocupadas(dia_str)
+        ocupadas = horas_ocupadas(dia_str, peluquero_id)
         libres = [h for h in HORAS if h not in ocupadas]
         dias.append({
             'fecha': dia_str,
@@ -1172,10 +1203,8 @@ def agregar_dia_cerrado_endpoint():
         if not fecha_normalizada:
             return jsonify({'ok': False, 'msg': 'Fecha inválida'})
         
-        if agregar_dia_cerrado(fecha_normalizada, motivo, peluquero_id):
-            return jsonify({'ok': True, 'msg': 'Día cerrado agregado correctamente'})
-        else:
-            return jsonify({'ok': False, 'msg': 'Ya existe un registro para esta fecha y peluquero'})
+        success, message = agregar_dia_cerrado(fecha_normalizada, motivo, peluquero_id)
+        return jsonify({'ok': success, 'msg': message})
         
     except Exception as e:
         return jsonify({'ok': False, 'msg': f'Error al agregar día cerrado: {str(e)}'})
@@ -1196,10 +1225,8 @@ def agregar_dia_cerrado_todos_peluqueros_endpoint():
         if not fecha_normalizada:
             return jsonify({'ok': False, 'msg': 'Fecha inválida'})
         
-        if agregar_dia_cerrado_todos_peluqueros(fecha_normalizada, motivo):
-            return jsonify({'ok': True, 'msg': 'Día cerrado agregado para todos los peluqueros'})
-        else:
-            return jsonify({'ok': False, 'msg': 'Error al agregar día cerrado'})
+        success, message = agregar_dia_cerrado_todos_peluqueros(fecha_normalizada, motivo)
+        return jsonify({'ok': success, 'msg': message})
         
     except Exception as e:
         return jsonify({'ok': False, 'msg': f'Error al agregar día cerrado: {str(e)}'})
@@ -1285,10 +1312,8 @@ def agregar_dia_festivo_endpoint():
         if not fecha_normalizada:
             return jsonify({'ok': False, 'msg': 'Fecha inválida'})
         
-        if agregar_dia_festivo(fecha_normalizada, nombre, tipo):
-            return jsonify({'ok': True, 'msg': 'Día festivo agregado correctamente'})
-        else:
-            return jsonify({'ok': False, 'msg': 'La fecha ya está marcada como festiva'})
+        success, message = agregar_dia_festivo(fecha_normalizada, nombre, tipo)
+        return jsonify({'ok': success, 'msg': message})
         
     except Exception as e:
         return jsonify({'ok': False, 'msg': f'Error al agregar día festivo: {str(e)}'})

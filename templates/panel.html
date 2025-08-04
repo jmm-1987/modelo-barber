@@ -536,6 +536,161 @@
                 padding: 5px;
             }
         }
+
+        /* Estilos para la vista responsiva del calendario */
+        .calendario-responsivo {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .dia-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
+            border-radius: 10px;
+            color: white;
+        }
+
+        .dia-header h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            flex: 1;
+        }
+
+        .btn-nav {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-nav:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .horarios-dia {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .slot-hora {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .slot-hora:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .hora-label {
+            background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            min-width: 80px;
+            text-align: center;
+            margin-right: 15px;
+        }
+
+        .slot-disponible {
+            flex: 1;
+            background: #e8f5e8;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            color: #2e7d32;
+            font-weight: 600;
+        }
+
+        .slot-disponible:hover {
+            background: #c8e6c9;
+            transform: scale(1.02);
+        }
+
+        .slot-ocupado {
+            flex: 1;
+            background: #ffebee;
+            border: 2px solid #f44336;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .slot-ocupado:hover {
+            background: #ffcdd2;
+            transform: scale(1.02);
+        }
+
+        .cita-info {
+            color: #d32f2f;
+        }
+
+        .cita-info .cliente {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .cita-info .servicio {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 2px;
+        }
+
+        .cita-info .peluquero {
+            font-size: 11px;
+            color: #888;
+            font-style: italic;
+        }
+
+        /* Responsive para móviles */
+        @media (max-width: 480px) {
+            .calendario-responsivo {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            .dia-header h2 {
+                font-size: 16px;
+            }
+
+            .slot-hora {
+                padding: 12px;
+            }
+
+            .hora-label {
+                min-width: 70px;
+                font-size: 12px;
+                padding: 6px 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -551,6 +706,7 @@
                 <div>
                     <button class="btn btn-secondary" onclick="window.location.href='/configuracion'">⚙️ Configuración</button>
                     <button class="btn" onclick="cargarCalendario()">🔄 Actualizar</button>
+                    <button class="btn" onclick="alternarVista()" id="btn-vista">📱 Vista Responsiva</button>
                 </div>
             </div>
         </div>
@@ -611,19 +767,21 @@
                 <!-- Los detalles se cargan dinámicamente -->
             </div>
             <div class="modal-buttons">
-                <button class="btn btn-danger" onclick="eliminarCitaDesdeModal()">🗑️ Eliminar</button>
-                <button class="btn" onclick="editarCitaDesdeModal()">✏️ Editar</button>
-                <button class="btn btn-whatsapp" onclick="enviarWhatsApp()">📱 WhatsApp</button>
-                <button class="btn btn-llamar" onclick="llamarCliente()">📞 Llamar</button>
-                <button class="btn" onclick="cerrarModalCita()">Cerrar</button>
+                <button class="btn btn-danger" onclick="eliminarCitaDesdeModal()" title="Eliminar">🗑️</button>
+                <button class="btn" onclick="editarCitaDesdeModal()" title="Editar">✏️</button>
+                <button class="btn btn-whatsapp" onclick="enviarWhatsApp()" title="WhatsApp">💬</button>
+                <button class="btn btn-llamar" onclick="llamarCliente()" title="Llamar">📞</button>
+                <button class="btn" onclick="cerrarModalCita()" title="Cerrar">✕</button>
             </div>
         </div>
     </div>
 
     <script>
         let semanaActual = new Date();
+        let diaActual = new Date(); // Para la vista responsiva
         let peluqueroSeleccionado = null;
         let citaAEliminar = null;
+        let vistaResponsiva = false; // Controlar si estamos en vista responsiva
 
         // Cargar peluqueros al iniciar
         cargarPeluqueros();
@@ -655,7 +813,11 @@
         function cambiarPeluquero() {
             peluqueroSeleccionado = document.getElementById('filtro-peluquero').value;
             console.log(`🔄 Cambiando a peluquero: ${peluqueroSeleccionado || 'Todos'}`);
-            cargarCalendario();
+            if (vistaResponsiva) {
+                cargarCalendarioResponsivo();
+            } else {
+                cargarCalendario();
+            }
         }
 
         // Función para obtener el lunes de la semana
@@ -989,7 +1151,11 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    cargarCalendario();
+                    if (vistaResponsiva) {
+                        cargarCalendarioResponsivo();
+                    } else {
+                        cargarCalendario();
+                    }
                     cancelarAgregarCita();
                 } else {
                     alert('Error al agregar la cita: ' + (data.msg || 'Error desconocido'));
@@ -1028,10 +1194,14 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.ok) {
-                    cargarCalendario();
-                } else {
-                    alert('Error al eliminar la cita');
-                }
+                        if (vistaResponsiva) {
+                            cargarCalendarioResponsivo();
+                        } else {
+                            cargarCalendario();
+                        }
+                    } else {
+                        alert('Error al eliminar la cita');
+                    }
                 })
                 .catch(error => {
                 console.error('Error:', error);
@@ -1190,7 +1360,11 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    cargarCalendario();
+                    if (vistaResponsiva) {
+                        cargarCalendarioResponsivo();
+                    } else {
+                        cargarCalendario();
+                    }
                     cancelarEditarCita();
                 } else {
                     alert('Error al editar la cita: ' + (data.msg || 'Error desconocido'));
@@ -1246,27 +1420,201 @@
 
                 // Función para semana anterior
         function semanaAnterior() {
-            semanaActual.setDate(semanaActual.getDate() - 7);
-            cargarCalendario();
+            if (vistaResponsiva) {
+                diaActual.setDate(diaActual.getDate() - 1);
+                cargarCalendarioResponsivo();
+            } else {
+                semanaActual.setDate(semanaActual.getDate() - 7);
+                cargarCalendario();
+            }
         }
 
         // Función para semana siguiente
         function semanaSiguiente() {
-            semanaActual.setDate(semanaActual.getDate() + 7);
-                    cargarCalendario();
+            if (vistaResponsiva) {
+                diaActual.setDate(diaActual.getDate() + 1);
+                cargarCalendarioResponsivo();
+            } else {
+                semanaActual.setDate(semanaActual.getDate() + 7);
+                cargarCalendario();
+            }
         }
 
         // Función para ir a hoy
         function irAHoy() {
             semanaActual = new Date();
-            cargarCalendario();
+            diaActual = new Date();
+            if (vistaResponsiva) {
+                cargarCalendarioResponsivo();
+            } else {
+                cargarCalendario();
+            }
+        }
+
+        // Función para día anterior (vista responsiva)
+        function diaAnterior() {
+            diaActual.setDate(diaActual.getDate() - 1);
+            cargarCalendarioResponsivo();
+        }
+
+        // Función para día siguiente (vista responsiva)
+        function diaSiguiente() {
+            diaActual.setDate(diaActual.getDate() + 1);
+            cargarCalendarioResponsivo();
+        }
+
+        // Función para cargar calendario responsivo (un día)
+        async function cargarCalendarioResponsivo() {
+            try {
+                const fecha = diaActual.toISOString().split('T')[0];
+                
+                // Cargar horarios disponibles desde la BD
+                const response = await fetch('/obtener_horarios_disponibles');
+                if (!response.ok) {
+                    throw new Error('Error cargando horarios');
+                }
+                const data = await response.json();
+                const horas = data.horarios || [];
+                
+                if (horas.length === 0) {
+                    document.getElementById('calendario-semanal').innerHTML = 
+                        '<div class="error">No hay horarios configurados. Ve a Configuración para agregar horarios.</div>';
+                    return;
+                }
+                
+                let html = '<div class="calendario-responsivo">';
+                html += `<div class="dia-header">`;
+                html += `<button class="btn btn-nav" onclick="diaAnterior()">◀</button>`;
+                html += `<h2>${formatearFechaCompleta(diaActual)}</h2>`;
+                html += `<button class="btn btn-nav" onclick="diaSiguiente()">▶</button>`;
+                html += `</div>`;
+                
+                html += '<div class="horarios-dia">';
+                horas.forEach(hora => {
+                    html += `<div class="slot-hora" id="slot-${fecha}-${hora}">`;
+                    html += `<div class="hora-label">${hora}</div>`;
+                    html += `<div class="slot-disponible" onclick="agregarCita('${fecha}', '${hora}')">`;
+                    html += `<span>Disponible</span>`;
+                    html += '</div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+                html += '</div>';
+                
+                document.getElementById('calendario-semanal').innerHTML = html;
+                
+                // Cargar citas para el día
+                await cargarCitasDiaResponsivo(fecha, horas);
+                await cargarEstadisticas();
+                
+            } catch (error) {
+                console.error('❌ Error cargando calendario responsivo:', error);
+                document.getElementById('calendario-semanal').innerHTML = 
+                    '<div class="error">Error cargando el calendario</div>';
+            }
+        }
+
+        // Función para cargar citas de un día específico (vista responsiva)
+        async function cargarCitasDiaResponsivo(fechaAPI, horas) {
+            try {
+                console.log(`📅 Cargando citas para: ${fechaAPI} (Peluquero: ${peluqueroSeleccionado || 'Todos'})`);
+                
+                const response = await fetch('/citas_dia', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        dia: fechaAPI,
+                        peluquero_id: peluqueroSeleccionado
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Error cargando citas');
+                }
+                
+                const data = await response.json();
+                const citas = data.citas || [];
+                const ocupadas = data.ocupadas || [];
+                
+                // Actualizar slots
+                horas.forEach(hora => {
+                    const slotElement = document.getElementById(`slot-${fechaAPI}-${hora}`);
+                    if (slotElement) {
+                        const slotDisponible = slotElement.querySelector('.slot-disponible');
+                        
+                        if (ocupadas.includes(hora)) {
+                            // Buscar la cita para esta hora
+                            const cita = citas.find(c => c.hora === hora);
+                            if (cita) {
+                                slotDisponible.className = 'slot-ocupado';
+                                slotDisponible.onclick = () => mostrarModalCita(
+                                    cita.id, 
+                                    cita.nombre, 
+                                    cita.telefono, 
+                                    cita.servicio, 
+                                    cita.peluquero_nombre, 
+                                    fechaAPI, 
+                                    hora
+                                );
+                                slotDisponible.innerHTML = `
+                                    <div class="cita-info">
+                                        <div class="cliente">${cita.nombre}</div>
+                                        <div class="servicio">${cita.servicio}</div>
+                                        <div class="peluquero">${cita.peluquero_nombre}</div>
+                                    </div>
+                                `;
+                            }
+                        } else {
+                            slotDisponible.className = 'slot-disponible';
+                            slotDisponible.onclick = () => agregarCita(fechaAPI, hora);
+                            slotDisponible.innerHTML = '<span>Disponible</span>';
+                        }
+                    }
+                });
+                
+            } catch (error) {
+                console.error('❌ Error cargando citas del día:', error);
+            }
+        }
+
+        // Función para formatear fecha completa
+        function formatearFechaCompleta(fecha) {
+            const opciones = { 
+                weekday: 'long', 
+                day: 'numeric', 
+                month: 'long',
+                year: 'numeric'
+            };
+            return fecha.toLocaleDateString('es-ES', opciones);
+        }
+
+        // Función para alternar entre vista semanal y responsiva
+        function alternarVista() {
+            vistaResponsiva = !vistaResponsiva;
+            const btnVista = document.getElementById('btn-vista');
+            
+            if (vistaResponsiva) {
+                btnVista.textContent = '📊 Vista Semanal';
+                cargarCalendarioResponsivo();
+            } else {
+                btnVista.textContent = '📱 Vista Responsiva';
+                cargarCalendario();
+            }
         }
 
         // Cargar calendario al iniciar
             cargarCalendario();
             
             // Actualizar cada 30 segundos
-            setInterval(cargarCalendario, 30000);
+            setInterval(() => {
+                if (vistaResponsiva) {
+                    cargarCalendarioResponsivo();
+                } else {
+                    cargarCalendario();
+                }
+            }, 30000);
     </script>
 </body>
 </html> 
