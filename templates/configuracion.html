@@ -561,6 +561,17 @@
           </div>
         </div>
       </div>
+
+      <!-- Sección de Peluqueros -->
+      <div class="configuracion-seccion">
+        <h3>👨‍💼 Peluqueros</h3>
+        <div class="controls">
+          <button type="button" class="btn-secundario" onclick="agregarPeluquero()">➕ Agregar Peluquero</button>
+        </div>
+        <div id="peluqueros-container">
+          <!-- Los peluqueros se cargarán dinámicamente -->
+        </div>
+      </div>
       
       <button type="submit" class="btn-guardar" id="btn-guardar">
         💾 Guardar Configuración
@@ -576,6 +587,7 @@
       cargarConfiguracionActual();
       cargarHorariosDisponibles();
       cargarServiciosDisponibles();
+      cargarPeluqueros(); // Cargar peluqueros al cargar la página
     });
 
     async function cargarConfiguracionActual() {
@@ -804,6 +816,73 @@
     function eliminarServicio(button) {
       button.parentElement.remove();
     }
+
+    // --- FUNCIONES PARA PELUQUEROS ---
+    let peluqueros = [];
+
+    // Función para cargar peluqueros desde la BD
+    async function cargarPeluqueros() {
+        try {
+            const response = await fetch('/obtener_peluqueros');
+            if (response.ok) {
+                const data = await response.json();
+                peluqueros = data.peluqueros || [];
+                mostrarPeluqueros();
+            }
+        } catch (error) {
+            console.error('Error cargando peluqueros:', error);
+        }
+    }
+
+    // Función para mostrar peluqueros
+    function mostrarPeluqueros() {
+        const container = document.getElementById('peluqueros-container');
+        if (peluqueros.length === 0) {
+            container.innerHTML = '<p class="no-data">No hay peluqueros configurados</p>';
+            return;
+        }
+
+        let html = '';
+        peluqueros.forEach((peluquero, index) => {
+            html += `
+                <div class="item-card">
+                    <div class="item-info">
+                        <div class="item-header">
+                            <h4>${peluquero.nombre}</h4>
+                            <button type="button" class="btn-eliminar" onclick="eliminarPeluquero(${index})">🗑️</button>
+                        </div>
+                        <div class="item-details">
+                            <p><strong>Foto:</strong> ${peluquero.foto_url || 'Sin foto'}</p>
+                            <p><strong>Estado:</strong> ${peluquero.activo ? 'Activo' : 'Inactivo'}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    // Función para agregar peluquero
+    function agregarPeluquero() {
+        const nombre = prompt('Nombre del peluquero:');
+        if (!nombre) return;
+        
+        const foto_url = prompt('URL de la foto (opcional):') || '';
+        
+        peluqueros.push({
+            nombre: nombre,
+            foto_url: foto_url,
+            activo: true
+        });
+        
+        mostrarPeluqueros();
+    }
+
+    // Función para eliminar peluquero
+    function eliminarPeluquero(index) {
+        peluqueros.splice(index, 1);
+        mostrarPeluqueros();
+    }
     
     // Modificar la función de guardar configuración para incluir horarios
     document.getElementById('form-configuracion').addEventListener('submit', async function(e) {
@@ -885,6 +964,19 @@
           if (!dataServicios.ok) {
             throw new Error(dataServicios.msg);
           }
+        }
+
+        // Guardar peluqueros
+        const responsePeluqueros = await fetch('/actualizar_peluqueros', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ peluqueros: peluqueros })
+        });
+
+        const dataPeluqueros = await responsePeluqueros.json();
+
+        if (!dataPeluqueros.ok) {
+          throw new Error(dataPeluqueros.msg);
         }
         
         mostrarMensaje('✅ Configuración, horarios y servicios guardados exitosamente', 'exito');

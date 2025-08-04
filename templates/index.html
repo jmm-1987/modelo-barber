@@ -812,14 +812,83 @@
 
     window.elegirServicio = async function(servicio) {
       reserva.servicio = servicio;
-      // Limpiar pantalla y mostrar calendario directamente
+      // Mostrar selección de peluquero
+      mostrarPeluqueros();
+    }
+
+    // Función para mostrar peluqueros
+    async function mostrarPeluqueros() {
+      try {
+        const response = await fetch('/obtener_peluqueros');
+        if (response.ok) {
+          const data = await response.json();
+          const peluqueros = data.peluqueros || [];
+          
+          let html = '<div class="servicios-container">';
+          html += '<h3>👨‍💼 ¿Con qué peluquero te gustaría reservar?</h3>';
+          
+          peluqueros.forEach(peluquero => {
+            html += `
+              <div class="servicio-card" onclick="elegirPeluquero(${peluquero.id}, '${peluquero.nombre}')">
+                <div class="servicio-info">
+                  <h4>${peluquero.nombre}</h4>
+                  ${peluquero.foto_url ? `<img src="${peluquero.foto_url}" alt="${peluquero.nombre}" class="servicio-imagen">` : ''}
+                </div>
+              </div>
+            `;
+          });
+          
+          html += '</div>';
+          html += '<button id="btn-volver-servicio-peluquero" class="btn-volver">← Volver a servicios</button>';
+          
+          chat.innerHTML = html;
+          scrollToBottom();
+          
+          document.getElementById('btn-volver-servicio-peluquero').onclick = function() {
+            chat.innerHTML = '';
+            mostrarServicios();
+            scrollToBottom();
+          };
+        }
+      } catch (error) {
+        console.error('Error cargando peluqueros:', error);
+        // Si falla, continuar sin selección de peluquero
+        continuarSinPeluquero();
+      }
+    }
+
+    // Función para elegir peluquero
+    window.elegirPeluquero = async function(peluqueroId, peluqueroNombre) {
+      reserva.peluquero_id = peluqueroId;
+      reserva.peluquero_nombre = peluqueroNombre;
+      
+      // Limpiar pantalla y mostrar calendario
       chat.innerHTML = `<div id='calendario-dias'><em>Cargando calendario...</em></div>`;
       scrollToBottom();
+      
       // Pedir días disponibles al backend
       const res = await fetch('/proximos_dias_disponibles');
       const data = await res.json();
       renderCalendarioDias(data.dias);
       scrollToBottom();
+    }
+
+    // Función para continuar sin seleccionar peluquero
+    function continuarSinPeluquero() {
+      reserva.peluquero_id = null;
+      reserva.peluquero_nombre = 'Sin asignar';
+      
+      // Limpiar pantalla y mostrar calendario
+      chat.innerHTML = `<div id='calendario-dias'><em>Cargando calendario...</em></div>`;
+      scrollToBottom();
+      
+      // Pedir días disponibles al backend
+      fetch('/proximos_dias_disponibles')
+        .then(res => res.json())
+        .then(data => {
+          renderCalendarioDias(data.dias);
+          scrollToBottom();
+        });
     }
 
     function renderCalendarioDias(diasDisponibles, mesOffset = 0) {
@@ -1119,7 +1188,8 @@
           servicio: reserva.servicio,
           dia: reserva.dia,
           hora: reserva.hora,
-          telefono: reserva.telefono || ''
+          telefono: reserva.telefono || '',
+          peluquero_id: reserva.peluquero_id
         })
       });
       const data = await res.json();

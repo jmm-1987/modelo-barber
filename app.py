@@ -98,11 +98,13 @@ def init_db():
     c.execute('''
         CREATE TABLE IF NOT EXISTS citas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT,
-            servicio TEXT,
-            dia DATE,
-            hora TEXT,
-            telefono TEXT
+            nombre TEXT NOT NULL,
+            telefono TEXT NOT NULL,
+            servicio TEXT NOT NULL,
+            dia TEXT NOT NULL,
+            hora TEXT NOT NULL,
+            peluquero_id INTEGER,
+            fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     
@@ -112,23 +114,6 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             hora TEXT UNIQUE,
             activo BOOLEAN DEFAULT 1
-        )
-    ''')
-    
-    # Tabla de configuración del negocio
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS configuracion_negocio (
-            id INTEGER PRIMARY KEY,
-            hora_apertura TEXT,
-            hora_cierre TEXT,
-            dias_laborables TEXT,
-            duracion_corte INTEGER,
-            duracion_barba INTEGER,
-            duracion_combo INTEGER,
-            duracion_tratamiento INTEGER,
-            intervalo_citas INTEGER,
-            anticipacion_reserva INTEGER,
-            fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     
@@ -144,35 +129,68 @@ def init_db():
         )
     ''')
     
-    # Insertar horarios por defecto si la tabla está vacía
+    # Tabla de peluqueros
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS peluqueros (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            foto_url TEXT,
+            activo BOOLEAN DEFAULT 1
+        )
+    ''')
+    
+    # Tabla de configuración del negocio
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS configuracion_negocio (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre_negocio TEXT DEFAULT 'Barbería del Oeste',
+            direccion TEXT DEFAULT 'Calle Principal 123',
+            telefono TEXT DEFAULT '+34 123 456 789',
+            email TEXT DEFAULT 'info@barberia.com',
+            hora_apertura TEXT DEFAULT '10:00',
+            hora_cierre TEXT DEFAULT '19:00',
+            intervalo_citas INTEGER DEFAULT 30,
+            dias_laborables TEXT DEFAULT '1,2,3,4,5,6'
+        )
+    ''')
+    
+    # Insertar datos por defecto si las tablas están vacías
     c.execute('SELECT COUNT(*) FROM horarios_disponibles')
     if c.fetchone()[0] == 0:
-        horarios_default = [
-            '10:00', '10:30', '11:00', '11:30',
-            '12:00', '12:30', '13:00', '13:30',
-            '16:00', '16:30', '17:00', '17:30',
-            '18:00', '18:30', '19:00', '19:30'
-        ]
-        for hora in horarios_default:
+        horas_default = ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', 
+                        '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', 
+                        '18:00', '18:30', '19:00']
+        for hora in horas_default:
             c.execute('INSERT INTO horarios_disponibles (hora) VALUES (?)', (hora,))
     
-    # Insertar servicios por defecto si la tabla está vacía
     c.execute('SELECT COUNT(*) FROM servicios')
     if c.fetchone()[0] == 0:
         servicios_default = [
-            ('Corte de mujer', '18€', 'Corte personalizado, asesoría de estilo y acabado profesional.', 'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop'),
-            ('Corte de hombre', '12€', 'Corte clásico o moderno, incluye lavado y peinado.', 'https://images.pexels.com/photos/3993450/pexels-photo-3993450.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop'),
-            ('Peinado', '15€', 'Peinados para eventos, fiestas o el día a día.', 'https://images.pexels.com/photos/3993451/pexels-photo-3993451.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop'),
-            ('Tinte raíz', '22€', 'Coloración de raíces con productos de alta calidad.', 'https://images.pexels.com/photos/3993452/pexels-photo-3993452.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop'),
-            ('Mechas', '35€', 'Mechas naturales o fantasía, técnica a elegir.', 'https://images.pexels.com/photos/3993453/pexels-photo-3993453.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop'),
-            ('Lavado y secado', '8€', 'Lavado relajante y secado con brushing.', 'https://images.pexels.com/photos/3993454/pexels-photo-3993454.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop'),
-            ('Tratamiento hidratante', '20€', 'Recupera el brillo y la suavidad de tu cabello.', 'https://images.pexels.com/photos/3993455/pexels-photo-3993455.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop')
+            ('Corte de Cabello', '15€', 'Corte clásico o moderno', '/static/corte.jpg'),
+            ('Barba', '10€', 'Arreglo y perfilado de barba', '/static/barba.jpg'),
+            ('Corte + Barba', '20€', 'Corte completo con barba', '/static/combo.jpg'),
+            ('Color', '25€', 'Tinte y coloración', '/static/color.jpg')
         ]
         for servicio in servicios_default:
             c.execute('INSERT INTO servicios (nombre, precio, descripcion, imagen_url) VALUES (?, ?, ?, ?)', servicio)
     
+    c.execute('SELECT COUNT(*) FROM peluqueros')
+    if c.fetchone()[0] == 0:
+        peluqueros_default = [
+            ('Juan Pérez', '/static/peluquero1.jpg'),
+            ('Carlos García', '/static/peluquero2.jpg'),
+            ('Miguel López', '/static/peluquero3.jpg')
+        ]
+        for peluquero in peluqueros_default:
+            c.execute('INSERT INTO peluqueros (nombre, foto_url) VALUES (?, ?)', peluquero)
+    
+    c.execute('SELECT COUNT(*) FROM configuracion_negocio')
+    if c.fetchone()[0] == 0:
+        c.execute('INSERT INTO configuracion_negocio DEFAULT VALUES')
+    
     conn.commit()
     conn.close()
+    print("✅ Base de datos inicializada correctamente")
 
 # Obtener horarios disponibles desde la BD
 def obtener_horarios_disponibles():
@@ -220,21 +238,54 @@ def obtener_servicios():
     conn.close()
     return servicios
 
-# Actualizar servicios
 def actualizar_servicios(servicios):
     """Actualiza los servicios en la base de datos"""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     
-    # Desactivar todos los servicios
-    c.execute('UPDATE servicios SET activo = 0')
+    # Eliminar todos los servicios existentes
+    c.execute('DELETE FROM servicios')
     
-    # Activar/insertar solo los servicios proporcionados
+    # Insertar los nuevos servicios
     for servicio in servicios:
         c.execute('''
-            INSERT OR REPLACE INTO servicios (nombre, precio, descripcion, imagen_url, activo) 
-            VALUES (?, ?, ?, ?, 1)
-        ''', (servicio['nombre'], servicio['precio'], servicio['descripcion'], servicio['imagen_url']))
+            INSERT INTO servicios (nombre, precio, descripcion, imagen_url, activo) 
+            VALUES (?, ?, ?, ?, ?)
+        ''', (servicio['nombre'], servicio['precio'], servicio['descripcion'], servicio['imagen_url'], servicio['activo']))
+    
+    conn.commit()
+    conn.close()
+
+def obtener_peluqueros():
+    """Obtiene todos los peluqueros activos"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('SELECT id, nombre, foto_url, activo FROM peluqueros WHERE activo = 1 ORDER BY nombre')
+    peluqueros = []
+    for row in c.fetchall():
+        peluqueros.append({
+            'id': row[0],
+            'nombre': row[1],
+            'foto_url': row[2],
+            'activo': bool(row[3])
+        })
+    conn.close()
+    return peluqueros
+
+def actualizar_peluqueros(peluqueros):
+    """Actualiza los peluqueros en la base de datos"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    
+    # Eliminar todos los peluqueros existentes
+    c.execute('DELETE FROM peluqueros')
+    
+    # Insertar los nuevos peluqueros
+    for peluquero in peluqueros:
+        c.execute('''
+            INSERT INTO peluqueros (nombre, foto_url, activo) 
+            VALUES (?, ?, ?)
+        ''', (peluquero['nombre'], peluquero['foto_url'], peluquero['activo']))
     
     conn.commit()
     conn.close()
@@ -249,11 +300,11 @@ def horas_ocupadas(dia):
     return ocupadas
 
 # Guardar una cita
-def guardar_cita(nombre, servicio, dia, hora, telefono):
+def guardar_cita(nombre, servicio, dia, hora, telefono, peluquero_id=None):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute('INSERT INTO citas (nombre, servicio, dia, hora, telefono) VALUES (?, ?, ?, ?, ?)',
-              (nombre, servicio, dia, hora, telefono))
+    c.execute('INSERT INTO citas (nombre, servicio, dia, hora, telefono, peluquero_id) VALUES (?, ?, ?, ?, ?, ?)',
+              (nombre, servicio, dia, hora, telefono, peluquero_id))
     conn.commit()
     conn.close()
 
@@ -412,10 +463,11 @@ def reservar_cita():
     dia = normalizar_fecha(data.get('dia'))
     hora = data.get('hora')
     telefono = data.get('telefono', '')
+    peluquero_id = data.get('peluquero_id')
     # Comprobar si la hora sigue libre
     if hora in horas_ocupadas(dia):
         return jsonify({'ok': False, 'msg': 'La hora ya está ocupada'})
-    guardar_cita(nombre, servicio, dia, hora, telefono)
+    guardar_cita(nombre, servicio, dia, hora, telefono, peluquero_id)
     return jsonify({'ok': True, 'msg': 'Cita reservada correctamente'})
 
 # --- ENDPOINT PARA CONSULTAR CITAS DE UN DÍA (panel de control) ---
@@ -438,13 +490,27 @@ def citas_dia():
     total_citas = c.fetchone()[0]
     print(f"📊 Total de citas en BD para {dia}: {total_citas}")
     
-    c.execute('SELECT id, hora, nombre, servicio, telefono FROM citas WHERE dia = ?', (dia,))
+    c.execute('''
+        SELECT c.id, c.hora, c.nombre, c.servicio, c.telefono, c.peluquero_id, p.nombre as peluquero_nombre 
+        FROM citas c 
+        LEFT JOIN peluqueros p ON c.peluquero_id = p.id 
+        WHERE c.dia = ?
+    ''', (dia,))
     rows = c.fetchall()
     conn.close()
     
     ocupadas = [row[1] for row in rows]
     citas = [
-        {'id': row[0], 'hora': row[1], 'nombre': row[2], 'servicio': row[3], 'telefono': row[4], 'dia': formatear_fecha_display(dia)} for row in rows
+        {
+            'id': row[0], 
+            'hora': row[1], 
+            'nombre': row[2], 
+            'servicio': row[3], 
+            'telefono': row[4], 
+            'peluquero_id': row[5],
+            'peluquero_nombre': row[6] or 'Sin asignar',
+            'dia': formatear_fecha_display(dia)
+        } for row in rows
     ]
     
     print(f"📅 Encontradas {len(citas)} citas para {dia}: {[c['hora'] for c in citas]}")
@@ -793,6 +859,74 @@ def actualizar_servicios_endpoint():
         
     except Exception as e:
         return jsonify({'ok': False, 'msg': f'Error al actualizar servicios: {str(e)}'})
+
+# --- ENDPOINTS PARA GESTIONAR PELUQUEROS ---
+
+@app.route('/obtener_peluqueros', methods=['GET'])
+def obtener_peluqueros_endpoint():
+    """Obtiene todos los peluqueros activos"""
+    try:
+        peluqueros = obtener_peluqueros()
+        return jsonify({'ok': True, 'peluqueros': peluqueros})
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'Error al obtener peluqueros: {str(e)}'})
+
+@app.route('/actualizar_peluqueros', methods=['POST'])
+def actualizar_peluqueros_endpoint():
+    """Actualiza los peluqueros"""
+    try:
+        data = request.get_json()
+        peluqueros = data.get('peluqueros', [])
+        
+        if not peluqueros:
+            return jsonify({'ok': False, 'msg': 'No se proporcionaron peluqueros'})
+        
+        actualizar_peluqueros(peluqueros)
+        return jsonify({'ok': True, 'msg': 'Peluqueros actualizados correctamente'})
+        
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'Error al actualizar peluqueros: {str(e)}'})
+
+# --- ENDPOINT DE ESTADÍSTICAS ---
+
+@app.route('/estadisticas', methods=['GET'])
+def estadisticas():
+    """Obtiene estadísticas del negocio"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        
+        # Total de citas
+        c.execute('SELECT COUNT(*) FROM citas')
+        total_citas = c.fetchone()[0]
+        
+        # Citas de hoy
+        hoy = datetime.date.today().strftime('%Y-%m-%d')
+        c.execute('SELECT COUNT(*) FROM citas WHERE dia = ?', (hoy,))
+        citas_hoy = c.fetchone()[0]
+        
+        # Citas de esta semana
+        lunes = datetime.date.today() - datetime.timedelta(days=datetime.date.today().weekday())
+        domingo = lunes + datetime.timedelta(days=6)
+        c.execute('SELECT COUNT(*) FROM citas WHERE dia BETWEEN ? AND ?', 
+                 (lunes.strftime('%Y-%m-%d'), domingo.strftime('%Y-%m-%d')))
+        citas_semana = c.fetchone()[0]
+        
+        # Citas pendientes (futuras)
+        c.execute('SELECT COUNT(*) FROM citas WHERE dia >= ?', (hoy,))
+        citas_pendientes = c.fetchone()[0]
+        
+        conn.close()
+        
+        return jsonify({
+            'total_citas': total_citas,
+            'citas_hoy': citas_hoy,
+            'citas_semana': citas_semana,
+            'citas_pendientes': citas_pendientes
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)})
 
 if __name__ == "__main__":
     app.run(debug=True)
