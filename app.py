@@ -101,6 +101,7 @@ def init_db():
             nombre TEXT NOT NULL,
             telefono TEXT NOT NULL,
             servicio TEXT NOT NULL,
+            precio TEXT NOT NULL,
             dia TEXT NOT NULL,
             hora TEXT NOT NULL,
             peluquero_id INTEGER,
@@ -520,11 +521,11 @@ def horas_ocupadas(dia, peluquero_id=None):
     return ocupadas
 
 # Guardar una cita
-def guardar_cita(nombre, servicio, dia, hora, telefono, peluquero_id=None):
+def guardar_cita(nombre, servicio, precio, dia, hora, telefono, peluquero_id=None):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute('INSERT INTO citas (nombre, servicio, dia, hora, telefono, peluquero_id) VALUES (?, ?, ?, ?, ?, ?)',
-              (nombre, servicio, dia, hora, telefono, peluquero_id))
+    c.execute('INSERT INTO citas (nombre, servicio, precio, dia, hora, telefono, peluquero_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+              (nombre, servicio, precio, dia, hora, telefono, peluquero_id))
     conn.commit()
     conn.close()
 
@@ -607,8 +608,21 @@ def generar_citas_prueba():
             servicio = random.choice(servicios)
             telefono = f"6{random.randint(10000000, 99999999)}"  # Teléfono móvil español
             
+            # Verificar que el servicio existe y obtener su precio
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute('SELECT precio FROM servicios WHERE nombre = ?', (servicio,))
+            resultado = c.fetchone()
+            conn.close()
+            
+            if not resultado:
+                print(f"⚠️ Servicio '{servicio}' no encontrado, saltando...")
+                continue
+            
+            precio = resultado[0]
+            
             # Guardar la cita en la base de datos
-            guardar_cita(nombre, servicio, fecha_str, hora, telefono)
+            guardar_cita(nombre, servicio, precio, fecha_str, hora, telefono)
             citas_generadas.append({
                 'fecha': fecha_str,
                 'hora': hora,
@@ -687,6 +701,18 @@ def reservar_cita():
     telefono = data.get('telefono', '')
     peluquero_id = data.get('peluquero_id')
     
+    # Verificar que el servicio existe y obtener su precio
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('SELECT precio FROM servicios WHERE nombre = ?', (servicio,))
+    resultado = c.fetchone()
+    conn.close()
+    
+    if not resultado:
+        return jsonify({'ok': False, 'msg': f'El servicio "{servicio}" no existe. Por favor selecciona un servicio válido.'})
+    
+    precio = resultado[0]
+    
     # Comprobar si la hora sigue libre (considerando el peluquero si se especifica)
     if peluquero_id:
         # Verificar ocupación específica del peluquero
@@ -697,7 +723,7 @@ def reservar_cita():
         if hora in horas_ocupadas(dia):
             return jsonify({'ok': False, 'msg': 'La hora ya está ocupada'})
     
-    guardar_cita(nombre, servicio, dia, hora, telefono, peluquero_id)
+    guardar_cita(nombre, servicio, precio, dia, hora, telefono, peluquero_id)
     return jsonify({'ok': True, 'msg': 'Cita reservada correctamente'})
 
 # --- ENDPOINT PARA AGREGAR CITA DESDE EL PANEL ---
@@ -725,6 +751,18 @@ def agregar_cita():
     if dia_obj.weekday() == 6:  # Domingo
         return jsonify({'success': False, 'msg': 'No se pueden agregar citas en domingos'})
     
+    # Verificar que el servicio existe y obtener su precio
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('SELECT precio FROM servicios WHERE nombre = ?', (servicio,))
+    resultado = c.fetchone()
+    conn.close()
+    
+    if not resultado:
+        return jsonify({'success': False, 'msg': f'El servicio "{servicio}" no existe. Por favor selecciona un servicio válido.'})
+    
+    precio = resultado[0]
+    
     # Comprobar si la hora está ocupada (considerando el peluquero si se especifica)
     if peluquero_id:
         # Verificar ocupación específica del peluquero
@@ -743,7 +781,7 @@ def agregar_cita():
             return jsonify({'success': False, 'msg': 'La hora ya está ocupada'})
     
     # Guardar la cita
-    guardar_cita(nombre, servicio, dia, hora, telefono, peluquero_id)
+    guardar_cita(nombre, servicio, precio, dia, hora, telefono, peluquero_id)
     return jsonify({'success': True, 'msg': 'Cita agregada correctamente'})
 
 # --- ENDPOINT PARA CONSULTAR CITAS DE UN DÍA (panel de control) ---
@@ -769,7 +807,7 @@ def citas_dia():
         print(f"📊 Total de citas en BD para {dia} y peluquero {peluquero_id}: {total_citas}")
         
         c.execute('''
-            SELECT c.id, c.hora, c.nombre, c.servicio, c.telefono, c.peluquero_id, p.nombre as peluquero_nombre 
+            SELECT c.id, c.hora, c.nombre, c.servicio, c.precio, c.telefono, c.peluquero_id, p.nombre as peluquero_nombre 
             FROM citas c 
             LEFT JOIN peluqueros p ON c.peluquero_id = p.id 
             WHERE c.dia = ? AND c.peluquero_id = ?
@@ -780,7 +818,7 @@ def citas_dia():
         print(f"📊 Total de citas en BD para {dia}: {total_citas}")
         
         c.execute('''
-            SELECT c.id, c.hora, c.nombre, c.servicio, c.telefono, c.peluquero_id, p.nombre as peluquero_nombre 
+            SELECT c.id, c.hora, c.nombre, c.servicio, c.precio, c.telefono, c.peluquero_id, p.nombre as peluquero_nombre 
             FROM citas c 
             LEFT JOIN peluqueros p ON c.peluquero_id = p.id 
             WHERE c.dia = ?
@@ -796,9 +834,10 @@ def citas_dia():
             'hora': row[1], 
             'nombre': row[2], 
             'servicio': row[3], 
-            'telefono': row[4], 
-            'peluquero_id': row[5],
-            'peluquero_nombre': row[6] or 'Sin asignar',
+            'precio': row[4], 
+            'telefono': row[5], 
+            'peluquero_id': row[6],
+            'peluquero_nombre': row[7] or 'Sin asignar',
             'dia': formatear_fecha_display(dia)
         } for row in rows
     ]
@@ -905,16 +944,24 @@ def editar_cita():
     telefono = data.get('telefono')
     peluquero_id = data.get('peluquero_id')
     
+    # Verificar que el servicio existe y obtener su precio
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('SELECT precio FROM servicios WHERE nombre = ?', (servicio,))
+    resultado = c.fetchone()
+    
+    if not resultado:
+        return jsonify({'success': False, 'msg': f'El servicio "{servicio}" no existe. Por favor selecciona un servicio válido.'})
+    
+    precio = resultado[0]
+    
     try:
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        
         # Actualizar la cita
         c.execute('''
             UPDATE citas 
-            SET nombre = ?, servicio = ?, telefono = ?, peluquero_id = ?
+            SET nombre = ?, servicio = ?, precio = ?, telefono = ?, peluquero_id = ?
             WHERE id = ?
-        ''', (nombre, servicio, telefono, peluquero_id, cita_id))
+        ''', (nombre, servicio, precio, telefono, peluquero_id, cita_id))
         
         conn.commit()
         conn.close()
@@ -1347,28 +1394,71 @@ def eliminar_dia_festivo_endpoint():
 def estadisticas():
     """Obtiene estadísticas del negocio"""
     try:
+        # Obtener peluquero_id de los parámetros de la URL
+        peluquero_id = request.args.get('peluquero_id', type=int)
+        
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         
+        # Construir filtro de peluquero si se especifica
+        filtro_peluquero = ""
+        params = []
+        if peluquero_id:
+            filtro_peluquero = "WHERE peluquero_id = ?"
+            params = [peluquero_id]
+        
         # Total de citas
-        c.execute('SELECT COUNT(*) FROM citas')
+        c.execute(f'SELECT COUNT(*) FROM citas {filtro_peluquero}', params)
         total_citas = c.fetchone()[0]
         
         # Citas de hoy
         hoy = datetime.date.today().strftime('%Y-%m-%d')
-        c.execute('SELECT COUNT(*) FROM citas WHERE dia = ?', (hoy,))
+        if peluquero_id:
+            c.execute('SELECT COUNT(*) FROM citas WHERE dia = ? AND peluquero_id = ?', (hoy, peluquero_id))
+        else:
+            c.execute('SELECT COUNT(*) FROM citas WHERE dia = ?', (hoy,))
         citas_hoy = c.fetchone()[0]
         
         # Citas de esta semana
         lunes = datetime.date.today() - datetime.timedelta(days=datetime.date.today().weekday())
         domingo = lunes + datetime.timedelta(days=6)
-        c.execute('SELECT COUNT(*) FROM citas WHERE dia BETWEEN ? AND ?', 
-                 (lunes.strftime('%Y-%m-%d'), domingo.strftime('%Y-%m-%d')))
+        if peluquero_id:
+            c.execute('SELECT COUNT(*) FROM citas WHERE dia BETWEEN ? AND ? AND peluquero_id = ?', 
+                     (lunes.strftime('%Y-%m-%d'), domingo.strftime('%Y-%m-%d'), peluquero_id))
+        else:
+            c.execute('SELECT COUNT(*) FROM citas WHERE dia BETWEEN ? AND ?', 
+                     (lunes.strftime('%Y-%m-%d'), domingo.strftime('%Y-%m-%d')))
         citas_semana = c.fetchone()[0]
         
         # Citas pendientes (futuras)
-        c.execute('SELECT COUNT(*) FROM citas WHERE dia >= ?', (hoy,))
+        if peluquero_id:
+            c.execute('SELECT COUNT(*) FROM citas WHERE dia >= ? AND peluquero_id = ?', (hoy, peluquero_id))
+        else:
+            c.execute('SELECT COUNT(*) FROM citas WHERE dia >= ?', (hoy,))
         citas_pendientes = c.fetchone()[0]
+        
+        # Total de ingresos
+        if peluquero_id:
+            c.execute('SELECT SUM(CAST(REPLACE(REPLACE(precio, "€", ""), ",", ".") AS REAL)) FROM citas WHERE peluquero_id = ?', (peluquero_id,))
+        else:
+            c.execute('SELECT SUM(CAST(REPLACE(REPLACE(precio, "€", ""), ",", ".") AS REAL)) FROM citas')
+        total_ingresos = c.fetchone()[0] or 0
+        
+        # Ingresos de hoy
+        if peluquero_id:
+            c.execute('SELECT SUM(CAST(REPLACE(REPLACE(precio, "€", ""), ",", ".") AS REAL)) FROM citas WHERE dia = ? AND peluquero_id = ?', (hoy, peluquero_id))
+        else:
+            c.execute('SELECT SUM(CAST(REPLACE(REPLACE(precio, "€", ""), ",", ".") AS REAL)) FROM citas WHERE dia = ?', (hoy,))
+        ingresos_hoy = c.fetchone()[0] or 0
+        
+        # Ingresos de esta semana
+        if peluquero_id:
+            c.execute('SELECT SUM(CAST(REPLACE(REPLACE(precio, "€", ""), ",", ".") AS REAL)) FROM citas WHERE dia BETWEEN ? AND ? AND peluquero_id = ?', 
+                     (lunes.strftime('%Y-%m-%d'), domingo.strftime('%Y-%m-%d'), peluquero_id))
+        else:
+            c.execute('SELECT SUM(CAST(REPLACE(REPLACE(precio, "€", ""), ",", ".") AS REAL)) FROM citas WHERE dia BETWEEN ? AND ?', 
+                     (lunes.strftime('%Y-%m-%d'), domingo.strftime('%Y-%m-%d')))
+        ingresos_semana = c.fetchone()[0] or 0
         
         conn.close()
         
@@ -1376,7 +1466,53 @@ def estadisticas():
             'total_citas': total_citas,
             'citas_hoy': citas_hoy,
             'citas_semana': citas_semana,
-            'citas_pendientes': citas_pendientes
+            'citas_pendientes': citas_pendientes,
+            'total_ingresos': f"{total_ingresos:.2f}€",
+            'ingresos_hoy': f"{ingresos_hoy:.2f}€",
+            'ingresos_semana': f"{ingresos_semana:.2f}€"
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
+# --- ENDPOINT PARA SUMATORIO DE PRECIOS POR DÍA ---
+@app.route('/sumatorio_precios_dia', methods=['POST'])
+def sumatorio_precios_dia():
+    """Obtiene el sumatorio de precios para un día específico"""
+    try:
+        data = request.get_json()
+        dia = normalizar_fecha(data.get('dia'))
+        peluquero_id = data.get('peluquero_id')
+        
+        if not dia:
+            return jsonify({'error': 'Fecha inválida'})
+        
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        
+        # Construir query según si hay filtro de peluquero
+        if peluquero_id:
+            c.execute('''
+                SELECT SUM(CAST(REPLACE(REPLACE(precio, "€", ""), ",", ".") AS REAL)) as total
+                FROM citas 
+                WHERE dia = ? AND peluquero_id = ?
+            ''', (dia, peluquero_id))
+        else:
+            c.execute('''
+                SELECT SUM(CAST(REPLACE(REPLACE(precio, "€", ""), ",", ".") AS REAL)) as total
+                FROM citas 
+                WHERE dia = ?
+            ''', (dia,))
+        
+        resultado = c.fetchone()
+        total = resultado[0] if resultado and resultado[0] else 0
+        
+        conn.close()
+        
+        return jsonify({
+            'dia': dia,
+            'total': f"{total:.2f}€",
+            'peluquero_id': peluquero_id
         })
         
     except Exception as e:

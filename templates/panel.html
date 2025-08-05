@@ -220,8 +220,10 @@
 
         .time-slot.booked {
             background: rgba(244, 67, 54, 0.8);
-            color: #fff;
+            color: #ffffff;
             cursor: default;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
         }
 
         .time-slot.closed {
@@ -250,24 +252,32 @@
             font-weight: bold;
             display: block;
             margin-bottom: 2px;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
         }
 
         .cita-telefono {
             font-size: 11px;
             display: block;
             margin-bottom: 2px;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
         }
 
         .cita-servicio {
             font-size: 11px;
             display: block;
             margin-bottom: 2px;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
         }
 
         .cita-peluquero {
             font-size: 11px;
             display: block;
             font-style: italic;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
         }
 
         .opciones {
@@ -652,6 +662,55 @@
             color: #d32f2f;
         }
 
+        .slot-ocupado .cita-info {
+            color: #d32f2f;
+        }
+
+        .slot-ocupado .cita-info .cliente {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 4px;
+            color: #b71c1c;
+        }
+
+        .slot-ocupado .cita-info .servicio {
+            font-size: 12px;
+            color: #d32f2f;
+            margin-bottom: 2px;
+        }
+
+        .slot-ocupado .cita-info .peluquero {
+            font-size: 11px;
+            color: #c62828;
+            font-style: italic;
+        }
+
+        /* Estilos para las filas de sumatorio */
+        .sumatorio-fila {
+            border-top: 2px solid #8B4513;
+            border-bottom: 1px solid rgba(139, 69, 19, 0.3);
+            margin: 5px 0;
+        }
+
+        .sumatorio-fila td {
+            background: linear-gradient(135deg, rgba(139, 69, 19, 0.15) 0%, rgba(139, 69, 19, 0.08) 100%);
+            font-weight: bold;
+            color: #8B4513;
+            text-align: center;
+            padding: 15px;
+            font-size: 16px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin: 5px 0;
+        }
+
+        .sumatorio-fila:hover td {
+            background: linear-gradient(135deg, rgba(139, 69, 19, 0.2) 0%, rgba(139, 69, 19, 0.12) 100%);
+            transform: scale(1.02);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.2);
+        }
+
         .cita-info .cliente {
             font-weight: bold;
             font-size: 14px;
@@ -736,6 +795,18 @@
             <div class="stat-card">
                 <div class="stat-number" id="citas-pendientes">0</div>
                 <div class="stat-label">Citas Pendientes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="total-ingresos">0€</div>
+                <div class="stat-label">Total Ingresos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="ingresos-hoy">0€</div>
+                <div class="stat-label">Ingresos Hoy</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="ingresos-semana">0€</div>
+                <div class="stat-label">Ingresos Esta Semana</div>
             </div>
         </div>
 
@@ -930,6 +1001,9 @@
                 
                 document.getElementById('calendario-semanal').innerHTML = html;
                 
+                // Limpiar filas de sumatorio existentes
+                document.querySelectorAll('.sumatorio-fila').forEach(fila => fila.remove());
+                
                 // Cargar citas para cada día
                 await cargarCitasSemana(dias, horas);
                 await cargarEstadisticas();
@@ -992,10 +1066,10 @@
                                                 if (citaEnHora) {
                             // Mostrar la cita existente
                                                 celda.innerHTML = `
-                            <div class="time-slot booked" onclick="mostrarModalCita(${citaEnHora.id}, '${citaEnHora.nombre || citaEnHora.cliente}', '${citaEnHora.telefono}', '${citaEnHora.servicio}', '${citaEnHora.peluquero_nombre || 'Sin asignar'}', '${fechaAPI}', '${citaEnHora.hora}')">
+                            <div class="time-slot booked" onclick="mostrarModalCita(${citaEnHora.id}, '${citaEnHora.nombre || citaEnHora.cliente}', '${citaEnHora.telefono}', '${citaEnHora.servicio}', '${citaEnHora.peluquero_nombre || 'Sin asignar'}', '${fechaAPI}', '${citaEnHora.hora}', '${citaEnHora.precio}')">
                                 <div class="cita-info">
                                     <span class="cita-nombre">${citaEnHora.nombre || citaEnHora.cliente}</span>
-                                    <span class="cita-servicio">${citaEnHora.servicio}</span>
+                                    <span class="cita-servicio">${citaEnHora.servicio} - ${citaEnHora.precio}</span>
                                     <span class="cita-peluquero">👨‍💼 ${citaEnHora.peluquero_nombre || 'Sin asignar'}</span>
                                 </div>
                             </div>
@@ -1025,21 +1099,87 @@
                     }
                 });
                 
+                // Cargar sumatorio de precios del día
+                await cargarSumatorioPrecios(fechaAPI, horas);
+                
             } catch (error) {
                 console.error(`❌ Error cargando citas del día ${fechaAPI}:`, error);
+            }
+        }
+
+        // Función para cargar sumatorio de precios de un día
+        async function cargarSumatorioPrecios(fechaAPI, horas) {
+            try {
+                const response = await fetch('/sumatorio_precios_dia', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        dia: fechaAPI,
+                        peluquero_id: peluqueroSeleccionado
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const total = data.total || '0€';
+                    
+                    // Buscar la fila del sumatorio o crearla si no existe
+                    let filaSumatorio = document.querySelector(`.sumatorio-fila[data-fecha="${fechaAPI}"]`);
+                    if (!filaSumatorio) {
+                        // Crear nueva fila de sumatorio
+                        const tabla = document.querySelector('.calendar-table tbody');
+                        if (tabla) {
+                            // Encontrar la última fila del día (después de todas las horas)
+                            const ultimaFilaDia = document.querySelector(`#celda-${fechaAPI}-${horas[horas.length - 1]}`).closest('tr');
+                            
+                            const nuevaFila = document.createElement('tr');
+                            nuevaFila.className = 'sumatorio-fila';
+                            nuevaFila.setAttribute('data-fecha', fechaAPI);
+                            nuevaFila.innerHTML = `
+                                <td colspan="8" style="text-align: center; font-weight: bold; color: #8B4513; padding: 10px;">
+                                    💰 Total del día ${formatearFecha(new Date(fechaAPI))}: ${total}
+                                </td>
+                            `;
+                            
+                            // Insertar después de la última fila del día
+                            if (ultimaFilaDia && ultimaFilaDia.nextSibling) {
+                                tabla.insertBefore(nuevaFila, ultimaFilaDia.nextSibling);
+                            } else {
+                                tabla.appendChild(nuevaFila);
+                            }
+                        }
+                    } else {
+                        // Actualizar fila existente
+                        const td = filaSumatorio.querySelector('td');
+                        if (td) {
+                            td.innerHTML = `💰 Total del día ${formatearFecha(new Date(fechaAPI))}: ${total}`;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error(`❌ Error cargando sumatorio de precios para ${fechaAPI}:`, error);
             }
         }
 
         // Función para cargar estadísticas
         async function cargarEstadisticas() {
             try {
-                const response = await fetch('/estadisticas');
+                const url = peluqueroSeleccionado 
+                    ? `/estadisticas?peluquero_id=${peluqueroSeleccionado}`
+                    : '/estadisticas';
+                
+                const response = await fetch(url);
                 if (response.ok) {
                     const stats = await response.json();
                     document.getElementById('total-citas').textContent = stats.total_citas || 0;
                     document.getElementById('citas-hoy').textContent = stats.citas_hoy || 0;
                     document.getElementById('citas-semana').textContent = stats.citas_semana || 0;
                     document.getElementById('citas-pendientes').textContent = stats.citas_pendientes || 0;
+                    document.getElementById('total-ingresos').textContent = stats.total_ingresos || '0€';
+                    document.getElementById('ingresos-hoy').textContent = stats.ingresos_hoy || '0€';
+                    document.getElementById('ingresos-semana').textContent = stats.ingresos_semana || '0€';
                 }
             } catch (error) {
                 console.error('❌ Error cargando estadísticas:', error);
@@ -1221,8 +1361,8 @@
         let citaActual = null;
 
         // Función para mostrar modal de cita
-        function mostrarModalCita(id, nombre, telefono, servicio, peluquero, fecha, hora) {
-            citaActual = { id, nombre, telefono, servicio, peluquero, fecha, hora };
+        function mostrarModalCita(id, nombre, telefono, servicio, peluquero, fecha, hora, precio) {
+            citaActual = { id, nombre, telefono, servicio, peluquero, fecha, hora, precio };
             
             const modal = document.getElementById('modal-cita');
             const detalles = document.getElementById('cita-detalles');
@@ -1236,6 +1376,9 @@
                 </div>
                 <div class="cita-detalle">
                     <strong>Servicio:</strong> <span>${servicio}</span>
+                </div>
+                <div class="cita-detalle">
+                    <strong>Precio:</strong> <span>${citaActual.precio}</span>
                 </div>
                 <div class="cita-detalle">
                     <strong>Peluquero:</strong> <span>${peluquero}</span>
@@ -1505,6 +1648,7 @@
                 
                 // Cargar citas para el día
                 await cargarCitasDiaResponsivo(fecha, horas);
+                await cargarSumatorioPrecios(fecha, horas);
                 await cargarEstadisticas();
                 
             } catch (error) {
@@ -1556,12 +1700,13 @@
                                     cita.servicio, 
                                     cita.peluquero_nombre, 
                                     fechaAPI, 
-                                    hora
+                                    hora,
+                                    cita.precio
                                 );
                                 slotDisponible.innerHTML = `
                                     <div class="cita-info">
                                         <div class="cliente">${cita.nombre}</div>
-                                        <div class="servicio">${cita.servicio}</div>
+                                        <div class="servicio">${cita.servicio} - ${cita.precio}</div>
                                         <div class="peluquero">${cita.peluquero_nombre}</div>
                                     </div>
                                 `;
