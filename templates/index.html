@@ -915,9 +915,11 @@
       pushState('calendario');
       // Añadir margen superior para evitar superposición con header
       const headerMargin = '<div style="margin-top:60px;"></div>';
+      
       // Crear un mapa fecha->disponibles
       const diasMap = {};
       diasDisponibles.forEach(d => diasMap[d.fecha] = d.disponibles);
+      
       // Obtener el primer día del mes mostrado
       const primerDia = diasDisponibles[0].fecha;
       let fechaActual = new Date(primerDia);
@@ -925,47 +927,55 @@
       fechaActual.setDate(1);
       const mes = fechaActual.toLocaleString('es-ES', { month: 'long' });
       const anio = fechaActual.getFullYear();
+      
       // Calcular el primer lunes anterior o igual (sin domingos)
       let primerLunes = new Date(fechaActual);
       while (primerLunes.getDay() !== 1) { // 1 = lunes
         primerLunes.setDate(primerLunes.getDate() - 1);
       }
+      
       // Cabecera con mes y flechas
       let html = headerMargin + `<div style='display:flex; align-items:center; justify-content:center; gap:18px; margin-bottom:8px;'>
         <button id='mes-anterior' style='background:none; border:none; color:#2196f3; font-size:22px; cursor:pointer; padding:0 8px;' ${mesOffset<=0?'disabled style="opacity:0.3;cursor:not-allowed;"':''}>&lt;</button>
         <span style='font-size:18px; font-weight:bold; color:#fff; text-transform:capitalize;'>${mes} ${anio}</span>
         <button id='mes-siguiente' style='background:none; border:none; color:#2196f3; font-size:22px; cursor:pointer; padding:0 8px;'>&gt;</button>
       </div>`;
-      html += `<table style='width:100%;border-collapse:collapse;text-align:center;margin-bottom:10px;'>`;
-      html += `<tr><th style='color:#fff;'>Lun</th><th style='color:#fff;'>Mar</th><th style='color:#fff;'>Mié</th><th style='color:#fff;'>Jue</th><th style='color:#fff;'>Vie</th><th style='color:#fff;'>Sáb</th><th style='color:#fff;'>Dom</th></tr>`;
+      
+      html += `<table style='width:100%;border-collapse:collapse;text-align:center;margin-bottom:10px;background:rgba(255,255,255,0.1);border-radius:10px;'>`;
+      html += `<tr><th style='color:#fff;padding:10px;'>Lun</th><th style='color:#fff;padding:10px;'>Mar</th><th style='color:#fff;padding:10px;'>Mié</th><th style='color:#fff;padding:10px;'>Jue</th><th style='color:#fff;padding:10px;'>Vie</th><th style='color:#fff;padding:10px;'>Sáb</th><th style='color:#fff;padding:10px;'>Dom</th></tr>`;
+      
       let primerDiaSemana = fechaActual.getDay(); // 0=domingo, 1=lunes, ..., 6=sábado
       let offset = (primerDiaSemana + 6) % 7;
       let diasEnMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0).getDate();
       let dia = 1;
+      
       for (let fila = 0; fila < 6; fila++) {
         html += '<tr>';
         for (let col = 0; col < 7; col++) {
           let celdaNum = fila * 7 + col;
           if (celdaNum < offset || dia > diasEnMes) {
-            html += `<td></td>`;
+            html += `<td style='padding:8px;'></td>`;
           } else {
             let fechaStr = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
             if (col === 6) {
               // Domingo: inhabilitado, gris
-              html += `<td style='padding:4px;'><div style='width:100%;background:#f3f3f3;color:#bdbdbd;border-radius:10px;padding:8px 0;opacity:0.7;position:relative;'><b>${dia}</b></div></td>`;
+              html += `<td style='padding:8px;'><div style='width:100%;background:#f3f3f3;color:#bdbdbd;border-radius:10px;padding:12px 0;opacity:0.7;position:relative;'><b>${dia}</b></div></td>`;
             } else {
               if (diasMap[fechaStr] !== undefined) {
                 const disponibles = diasMap[fechaStr];
                 if (disponibles > 0) {
-                  html += `<td style='padding:4px;'><button onclick=\"elegirDia('${fechaStr}')\" style='width:100%;background:#fff;border:2px solid #90caf9;color:#1565c0;border-radius:10px;padding:8px 0;font-size:15px;position:relative;'>
+                  html += `<td style='padding:8px;'><button onclick=\"elegirDia('${fechaStr}')\" style='width:100%;background:#fff;border:2px solid #90caf9;color:#1565c0;border-radius:10px;padding:12px 0;font-size:15px;position:relative;cursor:pointer;'>
                     <div><b>${dia}</b></div>
                     <div style='margin-top:4px;'><span style='display:inline-block; background:#43a047; color:#fff; border-radius:50%; width:28px; height:28px; line-height:28px; font-size:15px; font-weight:bold;'>${disponibles}</span></div>
                   </button></td>`;
                 } else {
-                  html += `<td style='padding:4px;'><div style='width:100%;background:#fff;color:#b71c1c;border-radius:10px;padding:8px 0;opacity:0.7;position:relative;'><b>${dia}</b><div style='margin-top:4px;'><span style='display:inline-block; background:#b71c1c; color:#fff; border-radius:50%; width:28px; height:28px; line-height:28px; font-size:15px; font-weight:bold;'>0</span></div></div></td>`;
+                  html += `<td style='padding:8px;'><div style='width:100%;background:#fff;color:#b71c1c;border-radius:10px;padding:12px 0;opacity:0.7;position:relative;'>
+                    <div><b>${dia}</b></div>
+                    <div style='margin-top:4px;'><span style='display:inline-block; background:#b71c1c; color:#fff; border-radius:50%; width:28px; height:28px; line-height:28px; font-size:15px; font-weight:bold;'>0</span></div>
+                  </div></td>`;
                 }
               } else {
-                html += `<td></td>`;
+                html += `<td style='padding:8px;'></td>`;
               }
             }
             dia++;
@@ -974,19 +984,23 @@
         html += '</tr>';
       }
       html += '</table>';
+      
       // Leyenda
       html += `<div style='display:flex; align-items:center; gap:16px; justify-content:center; margin-bottom:10px;'>
         <span style='display:inline-flex; align-items:center; gap:6px; color:#fff;'><span style='display:inline-block; background:#43a047; color:#fff; border-radius:50%; width:22px; height:22px; line-height:22px; font-size:13px; font-weight:bold; text-align:center;'></span> Citas disponibles</span>
         <span style='display:inline-flex; align-items:center; gap:6px; color:#fff;'><span style='display:inline-block; background:#b71c1c; color:#fff; border-radius:50%; width:22px; height:22px; line-height:22px; font-size:13px; font-weight:bold; text-align:center;'>-</span> Sin citas</span>
       </div>`;
+      
       // Botón Volver a selección de servicio
       html += `<div style='display:flex; justify-content:center; margin-bottom:10px;'><button id='btn-volver-servicio' style='background:linear-gradient(90deg,#e3e3e3,#90caf9); color:#2196f3; border:none; border-radius:24px; font-size:16px; font-weight:bold; padding:10px 28px; box-shadow:0 2px 8px #90caf933; cursor:pointer; transition:background 0.2s;'>Volver</button></div>`;
+      
       document.getElementById('calendario-dias').innerHTML = html;
       document.getElementById('btn-volver-servicio').onclick = function() {
         chat.innerHTML = '';
         mostrarServicios();
         scrollToBottom();
       };
+      
       // Navegación de meses
       document.getElementById('mes-siguiente').onclick = async function() {
         const url = reserva.peluquero_id ? 
@@ -996,6 +1010,7 @@
         const data = await res.json();
         renderCalendarioDias(data.dias, mesOffset + 1);
       };
+      
       const btnAnt = document.getElementById('mes-anterior');
       if (btnAnt) {
         btnAnt.onclick = async function() {
@@ -1047,7 +1062,7 @@
         scrollToBottom();
       };
       scrollToBottom();
-      // Consultar horas libres
+      // Consultar horas libres usando el mismo sistema que el panel
       const res = await fetch('/horas_disponibles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1057,12 +1072,17 @@
         })
       });
       const data = await res.json();
-      const todas = [
+      
+      // Obtener horarios desde la base de datos como en el panel
+      const resHorarios = await fetch('/obtener_horarios_disponibles');
+      const dataHorarios = await resHorarios.json();
+      const todas = dataHorarios.horarios || [
         '10:00', '10:30', '11:00', '11:30',
         '12:00', '12:30', '13:00', '13:30',
         '16:00', '16:30', '17:00', '17:30',
         '18:00', '18:30', '19:00', '19:30'
       ];
+      
       const horasBtns = todas.map(h =>
         `<button onclick=\"elegirHora('${h}')\" ${!data.libres.includes(h) ? 'disabled style=\'opacity:0.5;cursor:not-allowed;\'' : ''}>${h}</button>`
       ).join(' ');
