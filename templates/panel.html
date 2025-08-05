@@ -776,9 +776,8 @@
 
         /* Estilos para las filas de sumatorio */
         .sumatorio-fila {
-            border-top: 2px solid #8B4513;
-            border-bottom: 1px solid rgba(139, 69, 19, 0.3);
-            margin: 5px 0;
+            border-top: 3px solid #8B4513;
+            background: linear-gradient(135deg, rgba(139, 69, 19, 0.1) 0%, rgba(139, 69, 19, 0.05) 100%);
         }
 
         .sumatorio-fila td {
@@ -786,18 +785,17 @@
             font-weight: bold;
             color: #8B4513;
             text-align: center;
-            padding: 15px;
+            padding: 12px;
             font-size: 16px;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            margin: 5px 0;
+            border-radius: 6px;
+            transition: all 0.3s ease;
         }
 
         .sumatorio-fila:hover td {
             background: linear-gradient(135deg, rgba(139, 69, 19, 0.2) 0%, rgba(139, 69, 19, 0.12) 100%);
-            transform: scale(1.02);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.2);
+            transform: scale(1.01);
+            box-shadow: 0 2px 8px rgba(139, 69, 19, 0.2);
         }
 
         .cita-info .cliente {
@@ -950,6 +948,9 @@
 
         // Cargar peluqueros al iniciar
         cargarPeluqueros();
+        
+        // Cargar estadísticas al iniciar
+        cargarEstadisticas();
 
         // Función para cargar peluqueros
         async function cargarPeluqueros() {
@@ -983,6 +984,8 @@
             } else {
                 cargarCalendario();
             }
+            // Actualizar estadísticas cuando cambie el filtro
+            cargarEstadisticas();
         }
 
         // Función para obtener el lunes de la semana
@@ -1091,12 +1094,20 @@
                     html += '</tr>';
                 });
                 
-                html += '</tbody></table>';
+                html += '</tbody>';
+                
+                // Agregar fila de totales
+                html += '<tfoot><tr class="sumatorio-fila">';
+                html += '<td style="font-weight: bold; background: rgba(139, 69, 19, 0.1);">💰 Total</td>';
+                dias.forEach(dia => {
+                    const fechaAPI = dia.toISOString().split('T')[0];
+                    html += `<td id="total-${fechaAPI}" style="font-weight: bold; background: rgba(139, 69, 19, 0.1); text-align: center;">0€</td>`;
+                });
+                html += '</tr></tfoot>';
+                
+                html += '</table>';
                 
                 document.getElementById('calendario-semanal').innerHTML = html;
-                
-                // Limpiar filas de sumatorio existentes
-                document.querySelectorAll('.sumatorio-fila').forEach(fila => fila.remove());
                 
                 // Cargar citas para cada día
                 await cargarCitasSemana(dias, horas);
@@ -1248,39 +1259,10 @@
                     const data = await response.json();
                     const total = data.total || '0€';
                     
-                    // Buscar la fila del sumatorio o crearla si no existe
-                    let filaSumatorio = document.querySelector(`.sumatorio-fila[data-fecha="${fechaAPI}"]`);
-                    if (!filaSumatorio) {
-                        // Crear nueva fila de sumatorio
-                        const tabla = document.querySelector('.calendar-table tbody');
-                        if (tabla) {
-                            // Encontrar la última fila del día (después de todas las horas)
-                            const ultimaHora = horas[horas.length - 1];
-                            const celdaUltimaHora = document.getElementById(`celda-${fechaAPI}-${ultimaHora}`);
-                            const ultimaFilaDia = celdaUltimaHora ? celdaUltimaHora.closest('tr') : null;
-                            
-                            const nuevaFila = document.createElement('tr');
-                            nuevaFila.className = 'sumatorio-fila';
-                            nuevaFila.setAttribute('data-fecha', fechaAPI);
-                            nuevaFila.innerHTML = `
-                                <td colspan="8" style="text-align: center; font-weight: bold; color: #8B4513; padding: 10px;">
-                                    💰 Total del día ${formatearFecha(new Date(fechaAPI))}: ${total}
-                                </td>
-                            `;
-                            
-                            // Insertar después de la última fila del día
-                            if (ultimaFilaDia && ultimaFilaDia.nextSibling) {
-                                tabla.insertBefore(nuevaFila, ultimaFilaDia.nextSibling);
-                            } else {
-                                tabla.appendChild(nuevaFila);
-                            }
-                        }
-                    } else {
-                        // Actualizar fila existente
-                        const td = filaSumatorio.querySelector('td');
-                        if (td) {
-                            td.innerHTML = `💰 Total del día ${formatearFecha(new Date(fechaAPI))}: ${total}`;
-                        }
+                    // Actualizar el total en la celda correspondiente de la fila de totales
+                    const celdaTotal = document.getElementById(`total-${fechaAPI}`);
+                    if (celdaTotal) {
+                        celdaTotal.textContent = total;
                     }
                 }
             } catch (error) {
@@ -1295,16 +1277,35 @@
                     ? `/estadisticas?peluquero_id=${peluqueroSeleccionado}`
                     : '/estadisticas';
                 
+                console.log(`📊 Cargando estadísticas para peluquero: ${peluqueroSeleccionado || 'Todos'}`);
+                
                 const response = await fetch(url);
                 if (response.ok) {
                     const stats = await response.json();
-                    document.getElementById('total-citas').textContent = stats.total_citas || 0;
-                    document.getElementById('citas-hoy').textContent = stats.citas_hoy || 0;
-                    document.getElementById('citas-semana').textContent = stats.citas_semana || 0;
-                    document.getElementById('citas-pendientes').textContent = stats.citas_pendientes || 0;
-                    document.getElementById('total-ingresos').textContent = stats.total_ingresos || '0€';
-                    document.getElementById('ingresos-hoy').textContent = stats.ingresos_hoy || '0€';
-                    document.getElementById('ingresos-semana').textContent = stats.ingresos_semana || '0€';
+                    console.log('📈 Estadísticas recibidas:', stats);
+                    
+                    // Actualizar elementos con verificación
+                    const elementos = [
+                        { id: 'total-citas', valor: stats.total_citas || 0 },
+                        { id: 'citas-hoy', valor: stats.citas_hoy || 0 },
+                        { id: 'citas-semana', valor: stats.citas_semana || 0 },
+                        { id: 'citas-pendientes', valor: stats.citas_pendientes || 0 },
+                        { id: 'total-ingresos', valor: stats.total_ingresos || '0€' },
+                        { id: 'ingresos-hoy', valor: stats.ingresos_hoy || '0€' },
+                        { id: 'ingresos-semana', valor: stats.ingresos_semana || '0€' }
+                    ];
+                    
+                    elementos.forEach(elemento => {
+                        const el = document.getElementById(elemento.id);
+                        if (el) {
+                            el.textContent = elemento.valor;
+                            console.log(`✅ Actualizado ${elemento.id}: ${elemento.valor}`);
+                        } else {
+                            console.error(`❌ Elemento no encontrado: ${elemento.id}`);
+                        }
+                    });
+                } else {
+                    console.error(`❌ Error en respuesta: ${response.status}`);
                 }
             } catch (error) {
                 console.error('❌ Error cargando estadísticas:', error);
@@ -1388,7 +1389,7 @@
         }
 
         // Función para confirmar agregar cita
-        function confirmarAgregarCita(fecha, hora) {
+        async function confirmarAgregarCita(fecha, hora) {
             const nombre = document.getElementById('nombre-cliente').value.trim();
             const telefono = document.getElementById('telefono-cliente').value.trim();
             const servicio = document.getElementById('servicio-cita').value;
@@ -1421,6 +1422,8 @@
                     } else {
                         cargarCalendario();
                     }
+                    // Actualizar estadísticas después de agregar cita
+                    cargarEstadisticas();
                     cancelarAgregarCita();
                 } else {
                     alert('Error al agregar la cita: ' + (data.msg || 'Error desconocido'));
@@ -1464,6 +1467,8 @@
                         } else {
                             cargarCalendario();
                         }
+                        // Actualizar estadísticas después de eliminar cita
+                        cargarEstadisticas();
                     } else {
                         alert('Error al eliminar la cita');
                     }

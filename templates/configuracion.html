@@ -389,6 +389,58 @@
       background: #c82333;
       transform: scale(1.1);
     }
+
+    /* Estilos para subida de imágenes */
+    .imagen-upload-container {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .btn-subir-imagen {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-subir-imagen:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-eliminar-imagen {
+      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-eliminar-imagen:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+
+    .imagen-preview {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100px;
+      border: 2px dashed #ddd;
+      border-radius: 8px;
+      background: #f8f9fa;
+    }
     
     /* Estilos para peluqueros */
     .peluquero-item {
@@ -1079,12 +1131,22 @@
           </div>
           <div class="servicio-campos">
             <div>
-              <label>Ruta de la imagen:</label>
-              <input type="text" class="servicio-imagen-input" value="${servicio.img}" placeholder="/static/imagen.jpg">
+              <label>Imagen del servicio:</label>
+              <div class="imagen-upload-container">
+                <input type="file" class="servicio-imagen-file" accept="image/*" onchange="subirImagenServicio(this, ${servicio.id})" style="display: none;">
+                              <button type="button" class="btn-subir-imagen" onclick="seleccionarImagenServicio(this)">
+                📁 Seleccionar Imagen
+              </button>
+                <button type="button" class="btn-eliminar-imagen" onclick="eliminarImagenServicio(${servicio.id})" style="display: ${servicio.img ? 'inline-block' : 'none'}">
+                  🗑️ Eliminar
+                </button>
+              </div>
             </div>
             <div>
               <label>Vista previa:</label>
-              <img src="${servicio.img}" alt="Vista previa" class="servicio-imagen" onerror="this.style.display='none'">
+              <div class="imagen-preview">
+                <img src="${servicio.img || '/static/logo.png'}" alt="Vista previa" class="servicio-imagen" onerror="this.src='/static/logo.png'">
+              </div>
             </div>
           </div>
         `;
@@ -1119,12 +1181,22 @@
         </div>
         <div class="servicio-campos">
           <div>
-            <label>Ruta de la imagen:</label>
-            <input type="text" class="servicio-imagen-input" value="" placeholder="/static/imagen.jpg">
+            <label>Imagen del servicio:</label>
+            <div class="imagen-upload-container">
+              <input type="file" class="servicio-imagen-file" accept="image/*" onchange="subirImagenServicio(this, 'nuevo')" style="display: none;">
+              <button type="button" class="btn-subir-imagen" onclick="seleccionarImagenServicio(this)">
+                📁 Seleccionar Imagen
+              </button>
+              <button type="button" class="btn-eliminar-imagen" onclick="eliminarImagenServicio('nuevo')" style="display: none;">
+                🗑️ Eliminar
+              </button>
+            </div>
           </div>
           <div>
             <label>Vista previa:</label>
-            <img src="" alt="Vista previa" class="servicio-imagen" style="display: none;">
+            <div class="imagen-preview">
+              <img src="/static/logo.png" alt="Vista previa" class="servicio-imagen">
+            </div>
           </div>
         </div>
       `;
@@ -1133,6 +1205,185 @@
     
     function eliminarServicio(button) {
       button.parentElement.remove();
+    }
+
+    // --- FUNCIONES PARA SUBIR IMÁGENES DE SERVICIOS ---
+    
+    function seleccionarImagenServicio(button) {
+      const fileInput = button.parentElement.querySelector('.servicio-imagen-file');
+      if (fileInput) {
+        fileInput.click();
+      }
+    }
+    
+    async function subirImagenServicio(input, servicioId) {
+      const file = input.files[0];
+      if (!file) return;
+      
+      const formData = new FormData();
+      formData.append('imagen', file);
+      formData.append('servicio_id', servicioId);
+      
+      try {
+        const response = await fetch('/subir_imagen_servicio', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.ok) {
+          // Actualizar la vista previa
+          const servicioItem = input.closest('.servicio-item');
+          const img = servicioItem.querySelector('.servicio-imagen');
+          img.src = data.imagen_url;
+          
+          // Mostrar botón de eliminar
+          const btnEliminar = servicioItem.querySelector('.btn-eliminar-imagen');
+          btnEliminar.style.display = 'inline-block';
+          
+          mostrarMensaje('✅ Imagen subida correctamente', 'exito');
+        } else {
+          mostrarMensaje(`❌ Error: ${data.msg}`, 'error');
+        }
+      } catch (error) {
+        console.error('Error subiendo imagen:', error);
+        mostrarMensaje('❌ Error al subir la imagen', 'error');
+      }
+    }
+    
+    async function eliminarImagenServicio(servicioId) {
+      if (servicioId === 'nuevo') {
+        // Para servicios nuevos, solo limpiar la vista previa
+        const servicioItem = document.querySelector('.servicio-item:last-child');
+        const img = servicioItem.querySelector('.servicio-imagen');
+        img.src = '/static/logo.png';
+        
+        const btnEliminar = servicioItem.querySelector('.btn-eliminar-imagen');
+        btnEliminar.style.display = 'none';
+        return;
+      }
+      
+      try {
+        const response = await fetch('/eliminar_imagen_servicio', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ servicio_id: servicioId })
+        });
+        
+        const data = await response.json();
+        
+        if (data.ok) {
+          // Actualizar la vista previa
+          const servicioItem = document.querySelector(`[onclick*="${servicioId}"]`).closest('.servicio-item');
+          const img = servicioItem.querySelector('.servicio-imagen');
+          img.src = '/static/logo.png';
+          
+          // Ocultar botón de eliminar
+          const btnEliminar = servicioItem.querySelector('.btn-eliminar-imagen');
+          btnEliminar.style.display = 'none';
+          
+          mostrarMensaje('✅ Imagen eliminada correctamente', 'exito');
+        } else {
+          mostrarMensaje(`❌ Error: ${data.msg}`, 'error');
+        }
+      } catch (error) {
+        console.error('Error eliminando imagen:', error);
+        mostrarMensaje('❌ Error al eliminar la imagen', 'error');
+      }
+    }
+
+    // --- FUNCIONES PARA SUBIR IMÁGENES DE PELUQUEROS ---
+    
+    function seleccionarImagenPeluquero(button) {
+      const fileInput = button.parentElement.querySelector('.peluquero-imagen-file');
+      if (fileInput) {
+        fileInput.click();
+      }
+    }
+    
+    async function subirImagenPeluquero(input, peluqueroId) {
+      const file = input.files[0];
+      if (!file) return;
+      
+      const formData = new FormData();
+      formData.append('imagen', file);
+      formData.append('peluquero_id', peluqueroId);
+      
+      try {
+        const response = await fetch('/subir_imagen_peluquero', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.ok) {
+          // Actualizar la vista previa
+          const peluqueroItem = input.closest('.peluquero-item');
+          const img = peluqueroItem.querySelector('.peluquero-imagen');
+          img.src = data.imagen_url;
+          img.style.display = 'block';
+          
+          // Mostrar botón de eliminar
+          const btnEliminar = peluqueroItem.querySelector('.btn-eliminar-imagen');
+          btnEliminar.style.display = 'inline-block';
+          
+          mostrarMensaje('✅ Imagen subida correctamente', 'exito');
+        } else {
+          mostrarMensaje(`❌ Error: ${data.msg}`, 'error');
+        }
+      } catch (error) {
+        console.error('Error subiendo imagen:', error);
+        mostrarMensaje('❌ Error al subir la imagen', 'error');
+      }
+    }
+    
+    async function eliminarImagenPeluquero(peluqueroId) {
+      if (peluqueroId === 'nuevo') {
+        // Para peluqueros nuevos, solo limpiar la vista previa
+        const peluqueroItem = document.querySelector('.peluquero-item:last-child');
+        const img = peluqueroItem.querySelector('.peluquero-imagen');
+        img.src = '/static/logo.png';
+        img.style.display = 'none';
+        
+        const btnEliminar = peluqueroItem.querySelector('.btn-eliminar-imagen');
+        btnEliminar.style.display = 'none';
+        return;
+      }
+      
+      try {
+        const response = await fetch('/eliminar_imagen_peluquero', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ peluquero_id: peluqueroId })
+        });
+        
+        const data = await response.json();
+        
+        if (data.ok) {
+          // Actualizar la vista previa
+          const peluqueroItem = document.querySelector(`[onclick*="${peluqueroId}"]`).closest('.peluquero-item');
+          const img = peluqueroItem.querySelector('.peluquero-imagen');
+          img.src = '/static/logo.png';
+          img.style.display = 'none';
+          
+          // Ocultar botón de eliminar
+          const btnEliminar = peluqueroItem.querySelector('.btn-eliminar-imagen');
+          btnEliminar.style.display = 'none';
+          
+          mostrarMensaje('✅ Imagen eliminada correctamente', 'exito');
+        } else {
+          mostrarMensaje(`❌ Error: ${data.msg}`, 'error');
+        }
+      } catch (error) {
+        console.error('Error eliminando imagen:', error);
+        mostrarMensaje('❌ Error al eliminar la imagen', 'error');
+      }
     }
 
     // --- FUNCIONES PARA PELUQUEROS ---
@@ -1174,8 +1425,16 @@
                             <input type="text" class="peluquero-nombre-input" value="${peluquero.nombre}" placeholder="Nombre del peluquero" onchange="actualizarPeluquero(${index}, 'nombre', this.value)">
                         </div>
                         <div>
-                            <label>Ruta de la foto:</label>
-                            <input type="text" class="peluquero-foto-input" value="${peluquero.foto_url || ''}" placeholder="/static/peluquero1.jpg" onchange="actualizarPeluquero(${index}, 'foto_url', this.value)">
+                            <label>Foto del peluquero:</label>
+                            <div class="imagen-upload-container">
+                                <input type="file" class="peluquero-imagen-file" accept="image/*" onchange="subirImagenPeluquero(this, ${peluquero.id})" style="display: none;">
+                                <button type="button" class="btn-subir-imagen" onclick="seleccionarImagenPeluquero(this)">
+                                    📁 Seleccionar Imagen
+                                </button>
+                                <button type="button" class="btn-eliminar-imagen" onclick="eliminarImagenPeluquero(${peluquero.id})" style="display: ${peluquero.foto_url ? 'inline-block' : 'none'}">
+                                    🗑️ Eliminar
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="peluquero-campos">

@@ -787,7 +787,7 @@
       html += `<div id='servicios-lista' style='display:flex; flex-wrap:wrap; justify-content:center; gap:22px; margin-bottom:18px;'>`;
       html += servicios.map((s,i) => `
         <div class='servicio-card anim-serv' style='background:rgba(255,255,255,0.92); border-radius:18px; box-shadow:0 2px 12px #90caf933; width:270px; padding:18px 18px 16px 18px; display:flex; flex-direction:column; align-items:center; transition:transform 0.2s;'>
-          <img src='${s.img}' alt='${s.nombre}' style='width:70px; height:70px; border-radius:50%; object-fit:cover; margin-bottom:12px;'/>
+          <img src='${s.img || '/static/logo.png'}' alt='${s.nombre}' style='width:70px; height:70px; border-radius:50%; object-fit:cover; margin-bottom:12px;' onerror="this.src='/static/logo.png'"/>
           <div style='font-family: \'Montserrat\', Arial, sans-serif; font-size:19px; font-weight:700; color:#1565c0; margin-bottom:6px; letter-spacing:0.5px;'>${s.nombre}</div>
           <div style='font-size:14px; color:#607d8b; font-family: Arial, sans-serif; text-align:center; margin-bottom:10px; min-height:32px;'>${s.desc}</div>
           <div style='display:flex; justify-content:center; align-items:center; gap:12px; margin-top:2px;'>
@@ -886,11 +886,33 @@
       chat.innerHTML = `<div id='calendario-dias'><em>Cargando calendario...</em></div>`;
       scrollToBottom();
       
-      // Pedir días disponibles al backend
-      const res = await fetch(`/proximos_dias_disponibles?peluquero_id=${peluqueroId}`);
-      const data = await res.json();
-      renderCalendarioDias(data.dias);
-      scrollToBottom();
+      try {
+        // Pedir días disponibles al backend
+        const res = await fetch(`/proximos_dias_disponibles?peluquero_id=${peluqueroId}`);
+        if (!res.ok) {
+          throw new Error(`Error ${res.status}: ${res.statusText}`);
+        }
+        const data = await res.json();
+        
+        if (!data.dias || !Array.isArray(data.dias)) {
+          throw new Error('Respuesta inválida del servidor');
+        }
+        
+        renderCalendarioDias(data.dias);
+        scrollToBottom();
+      } catch (error) {
+        console.error('Error cargando calendario:', error);
+        chat.innerHTML = `
+          <div style="text-align: center; color: #fff; padding: 20px;">
+            <div style="font-size: 18px; margin-bottom: 10px;">⚠️ Error al cargar el calendario</div>
+            <div style="font-size: 14px; color: #ccc;">${error.message}</div>
+            <button onclick="mostrarOpcionesPrincipales(true)" style="margin-top: 15px; background: #2196f3; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+              Volver al inicio
+            </button>
+          </div>
+        `;
+        scrollToBottom();
+      }
     }
 
     // Función para continuar sin seleccionar peluquero
@@ -904,9 +926,30 @@
       
       // Pedir días disponibles al backend (sin filtro de peluquero)
       fetch('/proximos_dias_disponibles')
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`Error ${res.status}: ${res.statusText}`);
+          }
+          return res.json();
+        })
         .then(data => {
+          if (!data.dias || !Array.isArray(data.dias)) {
+            throw new Error('Respuesta inválida del servidor');
+          }
           renderCalendarioDias(data.dias);
+          scrollToBottom();
+        })
+        .catch(error => {
+          console.error('Error cargando calendario:', error);
+          chat.innerHTML = `
+            <div style="text-align: center; color: #fff; padding: 20px;">
+              <div style="font-size: 18px; margin-bottom: 10px;">⚠️ Error al cargar el calendario</div>
+              <div style="font-size: 14px; color: #ccc;">${error.message}</div>
+              <button onclick="mostrarOpcionesPrincipales(true)" style="margin-top: 15px; background: #2196f3; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+                Volver al inicio
+              </button>
+            </div>
+          `;
           scrollToBottom();
         });
     }
@@ -915,6 +958,21 @@
       pushState('calendario');
       // Añadir margen superior para evitar superposición con header
       const headerMargin = '<div style="margin-top:60px;"></div>';
+      
+      // Verificar que diasDisponibles sea válido
+      if (!diasDisponibles || !Array.isArray(diasDisponibles) || diasDisponibles.length === 0) {
+        chat.innerHTML = `
+          <div style="text-align: center; color: #fff; padding: 20px;">
+            <div style="font-size: 18px; margin-bottom: 10px;">⚠️ No hay días disponibles</div>
+            <div style="font-size: 14px; color: #ccc;">No se encontraron días disponibles para mostrar</div>
+            <button onclick="mostrarOpcionesPrincipales(true)" style="margin-top: 15px; background: #2196f3; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+              Volver al inicio
+            </button>
+          </div>
+        `;
+        scrollToBottom();
+        return;
+      }
       
       // Crear un mapa fecha->disponibles
       const diasMap = {};

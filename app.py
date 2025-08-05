@@ -1,17 +1,30 @@
 from flask import Flask, request, jsonify, render_template, send_from_directory, abort
-
-import os
-import smtplib
-from email.message import EmailMessage
-import re
 import sqlite3
-import dateparser
-import datetime
+import os
+import re
+from datetime import datetime, timedelta
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from werkzeug.utils import secure_filename
+import uuid
 
 # load_dotenv()  # Eliminado
 
 # client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  # Eliminado
 app = Flask(__name__)
+
+# Configuración para subida de archivos
+UPLOAD_FOLDER = 'static/uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+# Crear directorio de uploads si no existe
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Configuración para servir archivos estáticos
 @app.route('/static/<path:filename>')
@@ -98,7 +111,7 @@ def enviar_correo(nombre, telefono, conversacion):
         email_pass = os.getenv("EMAIL_PASS")
         email_receiver = os.getenv("EMAIL_RECEIVER")
 
-        msg = EmailMessage()
+        msg = MIMEMultipart()
         msg["Subject"] = "Nuevo lead captado desde el chatbot"
         msg["From"] = email_user
         msg["To"] = email_receiver
@@ -112,7 +125,7 @@ Teléfono: {telefono}
 Conversación completa:
 {conversacion}
 """
-        msg.set_content(cuerpo)
+        msg.attach(MIMEText(cuerpo, 'plain'))
 
         with smtplib.SMTP(email_host, email_port) as server:
             server.starttls()
@@ -136,14 +149,14 @@ def normalizar_fecha(texto):
     # Si ya está en formato YYYY-MM-DD, devolverlo tal cual
     if len(texto) == 10 and texto[4] == '-' and texto[7] == '-':
         try:
-            datetime.datetime.strptime(texto, '%Y-%m-%d')
+            datetime.strptime(texto, '%Y-%m-%d')
             return texto
         except:
             pass
     
     # Intentar con dateparser
     try:
-        dt = dateparser.parse(texto, languages=['es'])
+        dt = datetime.strptime(texto, '%d/%m/%Y') # dateparser.parse(texto, languages=['es'])
         if dt:
             return dt.strftime('%Y-%m-%d')
     except:
@@ -155,7 +168,7 @@ def normalizar_fecha(texto):
 def formatear_fecha_display(fecha_str):
     """Convierte fecha YYYY-MM-DD a DD/MM/AAAA"""
     try:
-        dt = datetime.datetime.strptime(fecha_str, '%Y-%m-%d')
+        dt = datetime.strptime(fecha_str, '%Y-%m-%d')
         return dt.strftime('%d/%m/%Y')
     except:
         return fecha_str
@@ -633,7 +646,7 @@ def generar_citas_prueba():
     horas = obtener_horarios_disponibles()
     
     # Calcular fechas desde hoy hasta final de agosto
-    hoy = datetime.date.today()
+    hoy = datetime.now().date()
     fin_agosto = datetime.date(2025, 8, 31)  # 31 de agosto de 2025
     
     citas_generadas = []
@@ -649,7 +662,7 @@ def generar_citas_prueba():
         
         # Domingo no hay citas
         if dia_semana == 6:  # Domingo
-            fecha_actual += datetime.timedelta(days=1)
+            fecha_actual += timedelta(days=1)
             continue
             
         # Generar entre 3-15 citas por día (más ocupado los miércoles, jueves y viernes)
@@ -702,7 +715,7 @@ def generar_citas_prueba():
                 'telefono': telefono
             })
         
-        fecha_actual += datetime.timedelta(days=1)
+        fecha_actual += timedelta(days=1)
     
     print(f"\n🎉 Total de citas generadas: {len(citas_generadas)}")
     return citas_generadas
@@ -818,7 +831,7 @@ def agregar_cita():
         return jsonify({'success': False, 'msg': 'No se pueden agregar citas en días cerrados o festivos'})
     
     # Verificar si es domingo
-    dia_obj = datetime.datetime.strptime(dia, '%Y-%m-%d')
+    dia_obj = datetime.strptime(dia, '%Y-%m-%d')
     if dia_obj.weekday() == 6:  # Domingo
         return jsonify({'success': False, 'msg': 'No se pueden agregar citas en domingos'})
     
@@ -942,26 +955,33 @@ def citas_dia():
 # --- ENDPOINT: Próximos 20 días laborables y disponibilidad ---
 @app.route('/proximos_dias_disponibles', methods=['GET'])
 def proximos_dias_disponibles():
-    # Obtener peluquero_id de los parámetros de la URL
-    peluquero_id = request.args.get('peluquero_id', type=int)
-    
-    HORAS = obtener_horarios_disponibles()
-    dias = []
-    hoy = datetime.date.today()
-    hasta = hoy + datetime.timedelta(days=31)
-    dia = hoy
-    while dia <= hasta:
-        dia_str = dia.strftime('%Y-%m-%d')
-        ocupadas = horas_ocupadas(dia_str, peluquero_id)
-        libres = [h for h in HORAS if h not in ocupadas]
-        dias.append({
-            'fecha': dia_str,
-            'fecha_display': formatear_fecha_display(dia_str),
-            'disponibles': len(libres),
-            'weekday': dia.weekday()  # 0=lunes, 6=domingo
-        })
-        dia += datetime.timedelta(days=1)
-    return jsonify({'dias': dias})
+    try:
+        # Obtener peluquero_id de los parámetros de la URL
+        peluquero_id = request.args.get('peluquero_id', type=int)
+        
+        HORAS = obtener_horarios_disponibles()
+        
+        dias = []
+        hoy = datetime.now().date()
+        hasta = hoy + timedelta(days=31)
+        dia = hoy
+        while dia <= hasta:
+            dia_str = dia.strftime('%Y-%m-%d')
+            ocupadas = horas_ocupadas(dia_str, peluquero_id)
+            libres = [h for h in HORAS if h not in ocupadas]
+            dias.append({
+                'fecha': dia_str,
+                'fecha_display': formatear_fecha_display(dia_str),
+                'disponibles': len(libres),
+                'weekday': dia.weekday()  # 0=lunes, 6=domingo
+            })
+            dia += timedelta(days=1)
+        return jsonify({'dias': dias})
+    except Exception as e:
+        import traceback
+        print(f"Error en proximos_dias_disponibles: {e}")
+        print(f"Traceback: {traceback.format_exc()}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/enviar_recordatorio', methods=['POST'])
 def enviar_recordatorio():
@@ -981,7 +1001,7 @@ def enviar_recordatorio():
         email_port = int(os.getenv("EMAIL_PORT", "587"))
         email_user = os.getenv("EMAIL_USER")
         email_pass = os.getenv("EMAIL_PASS")
-        msg = EmailMessage()
+        msg = MIMEMultipart()
         msg["Subject"] = f"Recordatorio de tu cita en {nombre_peluqueria}"
         msg["From"] = email_user
         msg["To"] = email  # El destinatario es el email del usuario
@@ -996,7 +1016,7 @@ Te recordamos tu cita en {nombre_peluqueria}:
 
 ¡Te esperamos!
 """
-        msg.set_content(cuerpo)
+        msg.attach(MIMEText(cuerpo, 'plain'))
         with smtplib.SMTP(email_host, email_port) as server:
             server.starttls()
             server.login(email_user, email_pass)
@@ -1022,7 +1042,7 @@ def actualizar_telefono():
 def citas_por_telefono():
     data = request.get_json()
     telefono = data.get('telefono')
-    hoy = datetime.date.today().strftime('%Y-%m-%d')
+    hoy = datetime.now().date().strftime('%Y-%m-%d')
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('SELECT servicio, dia, hora, nombre FROM citas WHERE telefono = ? AND dia >= ?', (telefono, hoy))
@@ -1202,7 +1222,7 @@ def generar_horas_disponibles():
         
         while hora_actual < hora_fin:
             horas.append(hora_actual.strftime('%H:%M'))
-            hora_actual += datetime.timedelta(minutes=intervalo)
+            hora_actual += timedelta(minutes=intervalo)
         
         # Filtrar horas ocupadas
         ocupadas = horas_ocupadas(fecha)
@@ -1256,7 +1276,7 @@ def generar_horarios_automaticos():
         
         while hora_actual < hora_fin:
             horas.append(hora_actual.strftime('%H:%M'))
-            hora_actual += datetime.timedelta(minutes=intervalo)
+            hora_actual += timedelta(minutes=intervalo)
         
         # Actualizar en BD
         actualizar_horarios_disponibles(horas)
@@ -1484,7 +1504,165 @@ def eliminar_dia_festivo_endpoint():
     except Exception as e:
         return jsonify({'ok': False, 'msg': f'Error al eliminar día festivo: {str(e)}'})
 
+# --- ENDPOINTS PARA SUBIR IMÁGENES ---
 
+@app.route('/subir_imagen_servicio', methods=['POST'])
+def subir_imagen_servicio():
+    """Sube una imagen para un servicio específico"""
+    try:
+        if 'imagen' not in request.files:
+            return jsonify({'ok': False, 'msg': 'No se seleccionó ningún archivo'})
+        
+        file = request.files['imagen']
+        servicio_id = request.form.get('servicio_id')
+        
+        if file.filename == '':
+            return jsonify({'ok': False, 'msg': 'No se seleccionó ningún archivo'})
+        
+        if not allowed_file(file.filename):
+            return jsonify({'ok': False, 'msg': 'Tipo de archivo no permitido. Use: png, jpg, jpeg, gif, webp'})
+        
+        # Generar nombre único para el archivo
+        filename = secure_filename(file.filename)
+        extension = filename.rsplit('.', 1)[1].lower()
+        unique_filename = f"servicio_{servicio_id}_{uuid.uuid4().hex[:8]}.{extension}"
+        filepath = os.path.join(UPLOAD_FOLDER, unique_filename)
+        
+        # Guardar archivo
+        file.save(filepath)
+        
+        # Actualizar la base de datos
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute('UPDATE servicios SET imagen_url = ? WHERE id = ?', 
+                 (f'/static/uploads/{unique_filename}', servicio_id))
+        conn.commit()
+        conn.close()
+        
+        print(f"✅ Imagen subida para servicio {servicio_id}: {unique_filename}")
+        return jsonify({
+            'ok': True, 
+            'msg': 'Imagen subida correctamente',
+            'imagen_url': f'/static/uploads/{unique_filename}'
+        })
+        
+    except Exception as e:
+        print(f"❌ Error subiendo imagen de servicio: {e}")
+        return jsonify({'ok': False, 'msg': f'Error: {str(e)}'})
+
+@app.route('/subir_imagen_peluquero', methods=['POST'])
+def subir_imagen_peluquero():
+    """Sube una imagen para un peluquero específico"""
+    try:
+        if 'imagen' not in request.files:
+            return jsonify({'ok': False, 'msg': 'No se seleccionó ningún archivo'})
+        
+        file = request.files['imagen']
+        peluquero_id = request.form.get('peluquero_id')
+        
+        if file.filename == '':
+            return jsonify({'ok': False, 'msg': 'No se seleccionó ningún archivo'})
+        
+        if not allowed_file(file.filename):
+            return jsonify({'ok': False, 'msg': 'Tipo de archivo no permitido. Use: png, jpg, jpeg, gif, webp'})
+        
+        # Generar nombre único para el archivo
+        filename = secure_filename(file.filename)
+        extension = filename.rsplit('.', 1)[1].lower()
+        unique_filename = f"peluquero_{peluquero_id}_{uuid.uuid4().hex[:8]}.{extension}"
+        filepath = os.path.join(UPLOAD_FOLDER, unique_filename)
+        
+        # Guardar archivo
+        file.save(filepath)
+        
+        # Actualizar la base de datos
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute('UPDATE peluqueros SET foto_url = ? WHERE id = ?', 
+                 (f'/static/uploads/{unique_filename}', peluquero_id))
+        conn.commit()
+        conn.close()
+        
+        print(f"✅ Imagen subida para peluquero {peluquero_id}: {unique_filename}")
+        return jsonify({
+            'ok': True, 
+            'msg': 'Imagen subida correctamente',
+            'imagen_url': f'/static/uploads/{unique_filename}'
+        })
+        
+    except Exception as e:
+        print(f"❌ Error subiendo imagen de peluquero: {e}")
+        return jsonify({'ok': False, 'msg': f'Error: {str(e)}'})
+
+@app.route('/eliminar_imagen_servicio', methods=['POST'])
+def eliminar_imagen_servicio():
+    """Elimina la imagen de un servicio"""
+    try:
+        data = request.get_json()
+        servicio_id = data.get('servicio_id')
+        
+        if not servicio_id:
+            return jsonify({'ok': False, 'msg': 'ID de servicio requerido'})
+        
+        # Obtener la URL actual de la imagen
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute('SELECT imagen_url FROM servicios WHERE id = ?', (servicio_id,))
+        result = c.fetchone()
+        
+        if result and result[0]:
+            # Eliminar archivo físico
+            imagen_path = result[0].replace('/static/', '')
+            filepath = os.path.join('static', imagen_path)
+            if os.path.exists(filepath):
+                os.remove(filepath)
+                print(f"🗑️ Archivo eliminado: {filepath}")
+        
+        # Actualizar base de datos
+        c.execute('UPDATE servicios SET imagen_url = NULL WHERE id = ?', (servicio_id,))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'ok': True, 'msg': 'Imagen eliminada correctamente'})
+        
+    except Exception as e:
+        print(f"❌ Error eliminando imagen de servicio: {e}")
+        return jsonify({'ok': False, 'msg': f'Error: {str(e)}'})
+
+@app.route('/eliminar_imagen_peluquero', methods=['POST'])
+def eliminar_imagen_peluquero():
+    """Elimina la imagen de un peluquero"""
+    try:
+        data = request.get_json()
+        peluquero_id = data.get('peluquero_id')
+        
+        if not peluquero_id:
+            return jsonify({'ok': False, 'msg': 'ID de peluquero requerido'})
+        
+        # Obtener la URL actual de la imagen
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute('SELECT foto_url FROM peluqueros WHERE id = ?', (peluquero_id,))
+        result = c.fetchone()
+        
+        if result and result[0]:
+            # Eliminar archivo físico
+            imagen_path = result[0].replace('/static/', '')
+            filepath = os.path.join('static', imagen_path)
+            if os.path.exists(filepath):
+                os.remove(filepath)
+                print(f"🗑️ Archivo eliminado: {filepath}")
+        
+        # Actualizar base de datos
+        c.execute('UPDATE peluqueros SET foto_url = NULL WHERE id = ?', (peluquero_id,))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'ok': True, 'msg': 'Imagen eliminada correctamente'})
+        
+    except Exception as e:
+        print(f"❌ Error eliminando imagen de peluquero: {e}")
+        return jsonify({'ok': False, 'msg': f'Error: {str(e)}'})
 
 # --- ENDPOINT DE ESTADÍSTICAS ---
 
@@ -1510,7 +1688,7 @@ def estadisticas():
         total_citas = c.fetchone()[0]
         
         # Citas de hoy
-        hoy = datetime.date.today().strftime('%Y-%m-%d')
+        hoy = datetime.now().date().strftime('%Y-%m-%d')
         if peluquero_id:
             c.execute('SELECT COUNT(*) FROM citas WHERE dia = ? AND peluquero_id = ?', (hoy, peluquero_id))
         else:
@@ -1518,8 +1696,9 @@ def estadisticas():
         citas_hoy = c.fetchone()[0]
         
         # Citas de esta semana
-        lunes = datetime.date.today() - datetime.timedelta(days=datetime.date.today().weekday())
-        domingo = lunes + datetime.timedelta(days=6)
+        hoy = datetime.now().date()
+        lunes = hoy - timedelta(days=hoy.weekday())
+        domingo = lunes + timedelta(days=6)
         if peluquero_id:
             c.execute('SELECT COUNT(*) FROM citas WHERE dia BETWEEN ? AND ? AND peluquero_id = ?', 
                      (lunes.strftime('%Y-%m-%d'), domingo.strftime('%Y-%m-%d'), peluquero_id))
@@ -1560,7 +1739,7 @@ def estadisticas():
         
         conn.close()
         
-        return jsonify({
+        stats = {
             'total_citas': total_citas,
             'citas_hoy': citas_hoy,
             'citas_semana': citas_semana,
@@ -1568,7 +1747,9 @@ def estadisticas():
             'total_ingresos': f"{total_ingresos:.2f}€",
             'ingresos_hoy': f"{ingresos_hoy:.2f}€",
             'ingresos_semana': f"{ingresos_semana:.2f}€"
-        })
+        }
+        
+        return jsonify(stats)
         
     except Exception as e:
         return jsonify({'error': str(e)})
