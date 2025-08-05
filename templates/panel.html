@@ -549,7 +549,7 @@
 
         /* Estilos para la vista responsiva del calendario */
         .calendario-responsivo {
-            max-width: 600px;
+            max-width: 100%;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
@@ -559,10 +559,10 @@
 
         .dia-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             margin-bottom: 25px;
-            padding: 15px;
+            padding: 20px;
             background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
             border-radius: 10px;
             color: white;
@@ -570,27 +570,12 @@
 
         .dia-header h2 {
             margin: 0;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 700;
             text-align: center;
-            flex: 1;
         }
 
-        .btn-nav {
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
 
-        .btn-nav:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
-        }
 
         .horarios-dia {
             display: flex;
@@ -732,22 +717,23 @@
         /* Responsive para móviles */
         @media (max-width: 480px) {
             .calendario-responsivo {
-                margin: 10px;
+                margin: 5px;
                 padding: 15px;
+                max-width: 100%;
             }
 
             .dia-header h2 {
-                font-size: 16px;
+                font-size: 18px;
             }
 
             .slot-hora {
-                padding: 12px;
+                padding: 15px;
             }
 
             .hora-label {
-                min-width: 70px;
-                font-size: 12px;
-                padding: 6px 10px;
+                min-width: 80px;
+                font-size: 14px;
+                padding: 8px 12px;
             }
         }
     </style>
@@ -1609,6 +1595,8 @@
         // Función para cargar calendario responsivo (un día)
         async function cargarCalendarioResponsivo() {
             try {
+                // En vista responsiva, siempre mostrar hoy
+                diaActual = new Date();
                 const fecha = diaActual.toISOString().split('T')[0];
                 
                 // Cargar horarios disponibles desde la BD
@@ -1627,9 +1615,7 @@
                 
                 let html = '<div class="calendario-responsivo">';
                 html += `<div class="dia-header">`;
-                html += `<button class="btn btn-nav" onclick="diaAnterior()">◀</button>`;
                 html += `<h2>${formatearFechaCompleta(diaActual)}</h2>`;
-                html += `<button class="btn btn-nav" onclick="diaSiguiente()">▶</button>`;
                 html += `</div>`;
                 
                 html += '<div class="horarios-dia">';
@@ -1649,7 +1635,6 @@
                 // Cargar citas para el día
                 await cargarCitasDiaResponsivo(fecha, horas);
                 await cargarSumatorioPrecios(fecha, horas);
-                await cargarEstadisticas();
                 
             } catch (error) {
                 console.error('❌ Error cargando calendario responsivo:', error);
@@ -1742,6 +1727,8 @@
             
             if (vistaResponsiva) {
                 btnVista.textContent = '📊 Vista Semanal';
+                // En vista responsiva, siempre mostrar hoy
+                diaActual = new Date();
                 cargarCalendarioResponsivo();
             } else {
                 btnVista.textContent = '📱 Vista Responsiva';

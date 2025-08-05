@@ -446,7 +446,7 @@
           mostrarServicios();
         } else if (e.state.pantalla === 'calendario') {
           chat.innerHTML = `<p><strong>Selecciona un día:</strong></p><div id='calendario-dias'><em>Cargando calendario...</em></div>`;
-          fetch('/proximos_dias_disponibles').then(r=>r.json()).then(data=>renderCalendarioDias(data.dias));
+          fetch('/proximos_dias_disponibles').then(r=>r.json()).then(async data=>await renderCalendarioDias(data.dias));
         }
         // Puedes añadir más pantallas según el flujo
       }
@@ -911,7 +911,7 @@
         });
     }
 
-    function renderCalendarioDias(diasDisponibles, mesOffset = 0) {
+    async function renderCalendarioDias(diasDisponibles, mesOffset = 0) {
       pushState('calendario');
       // Añadir margen superior para evitar superposición con header
       const headerMargin = '<div style="margin-top:60px;"></div>';
@@ -919,6 +919,22 @@
       // Crear un mapa fecha->disponibles
       const diasMap = {};
       diasDisponibles.forEach(d => diasMap[d.fecha] = d.disponibles);
+      
+      // Obtener días cerrados para mostrarlos correctamente
+      let diasCerrados = [];
+      try {
+        const resDiasCerrados = await fetch('/obtener_dias_cerrados');
+        const dataDiasCerrados = await resDiasCerrados.json();
+        diasCerrados = dataDiasCerrados.dias_cerrados || [];
+      } catch (error) {
+        console.error('Error obteniendo días cerrados:', error);
+      }
+      
+      // Crear mapa de días cerrados
+      const diasCerradosMap = {};
+      diasCerrados.forEach(dc => {
+        diasCerradosMap[dc.fecha] = dc.motivo || 'Cerrado';
+      });
       
       // Obtener el primer día del mes mostrado
       const primerDia = diasDisponibles[0].fecha;
@@ -960,24 +976,33 @@
             if (col === 6) {
               // Domingo: inhabilitado, gris
               html += `<td style='padding:8px;'><div style='width:100%;background:#f3f3f3;color:#bdbdbd;border-radius:10px;padding:12px 0;opacity:0.7;position:relative;'><b>${dia}</b></div></td>`;
-            } else {
-              if (diasMap[fechaStr] !== undefined) {
-                const disponibles = diasMap[fechaStr];
-                if (disponibles > 0) {
-                  html += `<td style='padding:8px;'><button onclick=\"elegirDia('${fechaStr}')\" style='width:100%;background:#fff;border:2px solid #90caf9;color:#1565c0;border-radius:10px;padding:12px 0;font-size:15px;position:relative;cursor:pointer;'>
-                    <div><b>${dia}</b></div>
-                    <div style='margin-top:4px;'><span style='display:inline-block; background:#43a047; color:#fff; border-radius:50%; width:28px; height:28px; line-height:28px; font-size:15px; font-weight:bold;'>${disponibles}</span></div>
-                  </button></td>`;
-                } else {
-                  html += `<td style='padding:8px;'><div style='width:100%;background:#fff;color:#b71c1c;border-radius:10px;padding:12px 0;opacity:0.7;position:relative;'>
-                    <div><b>${dia}</b></div>
-                    <div style='margin-top:4px;'><span style='display:inline-block; background:#b71c1c; color:#fff; border-radius:50%; width:28px; height:28px; line-height:28px; font-size:15px; font-weight:bold;'>0</span></div>
-                  </div></td>`;
-                }
-              } else {
-                html += `<td style='padding:8px;'></td>`;
-              }
-            }
+                         } else {
+               if (diasMap[fechaStr] !== undefined) {
+                 const disponibles = diasMap[fechaStr];
+                 const esDiaCerrado = diasCerradosMap[fechaStr];
+                 
+                 if (esDiaCerrado) {
+                   // Día cerrado: mostrar en gris con motivo
+                   html += `<td style='padding:8px;'><div style='width:100%;background:#f3f3f3;color:#666;border-radius:10px;padding:12px 0;opacity:0.8;position:relative;'>
+                     <div><b>${dia}</b></div>
+                     <div style='font-size:10px;margin-top:2px;'>${esDiaCerrado}</div>
+                     <div style='margin-top:4px;'><span style='display:inline-block; background:#666; color:#fff; border-radius:50%; width:28px; height:28px; line-height:28px; font-size:15px; font-weight:bold;'>0</span></div>
+                   </div></td>`;
+                 } else if (disponibles > 0) {
+                   html += `<td style='padding:8px;'><button onclick=\"elegirDia('${fechaStr}')\" style='width:100%;background:#fff;border:2px solid #90caf9;color:#1565c0;border-radius:10px;padding:12px 0;font-size:15px;position:relative;cursor:pointer;'>
+                     <div><b>${dia}</b></div>
+                     <div style='margin-top:4px;'><span style='display:inline-block; background:#43a047; color:#fff; border-radius:50%; width:28px; height:28px; line-height:28px; font-size:15px; font-weight:bold;'>${disponibles}</span></div>
+                   </button></td>`;
+                 } else {
+                   html += `<td style='padding:8px;'><div style='width:100%;background:#fff;color:#b71c1c;border-radius:10px;padding:12px 0;opacity:0.7;position:relative;'>
+                     <div><b>${dia}</b></div>
+                     <div style='margin-top:4px;'><span style='display:inline-block; background:#b71c1c; color:#fff; border-radius:50%; width:28px; height:28px; line-height:28px; font-size:15px; font-weight:bold;'>0</span></div>
+                   </div></td>`;
+                 }
+               } else {
+                 html += `<td style='padding:8px;'></td>`;
+               }
+             }
             dia++;
           }
         }
@@ -986,9 +1011,10 @@
       html += '</table>';
       
       // Leyenda
-      html += `<div style='display:flex; align-items:center; gap:16px; justify-content:center; margin-bottom:10px;'>
+      html += `<div style='display:flex; align-items:center; gap:16px; justify-content:center; margin-bottom:10px; flex-wrap:wrap;'>
         <span style='display:inline-flex; align-items:center; gap:6px; color:#fff;'><span style='display:inline-block; background:#43a047; color:#fff; border-radius:50%; width:22px; height:22px; line-height:22px; font-size:13px; font-weight:bold; text-align:center;'></span> Citas disponibles</span>
         <span style='display:inline-flex; align-items:center; gap:6px; color:#fff;'><span style='display:inline-block; background:#b71c1c; color:#fff; border-radius:50%; width:22px; height:22px; line-height:22px; font-size:13px; font-weight:bold; text-align:center;'>-</span> Sin citas</span>
+        <span style='display:inline-flex; align-items:center; gap:6px; color:#fff;'><span style='display:inline-block; background:#666; color:#fff; border-radius:50%; width:22px; height:22px; line-height:22px; font-size:13px; font-weight:bold; text-align:center;'>-</span> Día cerrado</span>
       </div>`;
       
       // Botón Volver a selección de servicio
@@ -1008,7 +1034,7 @@
           '/proximos_dias_disponibles';
         const res = await fetch(url);
         const data = await res.json();
-        renderCalendarioDias(data.dias, mesOffset + 1);
+        await renderCalendarioDias(data.dias, mesOffset + 1);
       };
       
       const btnAnt = document.getElementById('mes-anterior');
@@ -1020,7 +1046,7 @@
               '/proximos_dias_disponibles';
             const res = await fetch(url);
             const data = await res.json();
-            renderCalendarioDias(data.dias, mesOffset - 1);
+            await renderCalendarioDias(data.dias, mesOffset - 1);
           }
         };
       }
@@ -1058,7 +1084,7 @@
           '/proximos_dias_disponibles';
         const res = await fetch(url);
         const data = await res.json();
-        renderCalendarioDias(data.dias);
+        await renderCalendarioDias(data.dias);
         scrollToBottom();
       };
       scrollToBottom();
@@ -1226,7 +1252,7 @@
           '/proximos_dias_disponibles';
         const res = await fetch(url);
         const data = await res.json();
-        renderCalendarioDias(data.dias);
+        await renderCalendarioDias(data.dias);
         scrollToBottom();
       };
       scrollToBottom();
