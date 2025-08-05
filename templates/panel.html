@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - Barbería</title>
+    <link rel="stylesheet" href="/static/panel-responsive.css">
     <style>
         * {
             margin: 0;
@@ -74,6 +75,24 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 15px;
+        }
+        
+        /* Controles responsivos */
+        .controls-mobile {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .controls-desktop {
+                display: none;
+            }
+            
+            .controls-mobile {
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                width: 100%;
+            }
         }
 
         .btn {
@@ -221,9 +240,15 @@
         .time-slot.booked {
             background: rgba(244, 67, 54, 0.8);
             color: #ffffff;
-            cursor: default;
+            cursor: pointer;
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            padding: 8px;
+        }
+
+        .time-slot.booked:hover {
+            background: rgba(244, 67, 54, 1);
+            transform: scale(1.02);
         }
 
         .time-slot.closed {
@@ -278,6 +303,83 @@
             font-style: italic;
             color: #ffffff;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Estilos para múltiples citas */
+        .time-slot.multiple-booked {
+            background: rgba(255, 152, 0, 0.8);
+            color: #ffffff;
+            cursor: pointer;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            padding: 8px;
+        }
+
+        .time-slot.multiple-booked:hover {
+            background: rgba(255, 152, 0, 1);
+            transform: scale(1.02);
+        }
+
+        .cita-multiple {
+            padding: 6px;
+            margin: 3px 0;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 152, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .cita-multiple:hover {
+            background: rgba(255, 152, 0, 0.1);
+            border-color: rgba(255, 152, 0, 0.8);
+        }
+
+        .cita-multiple .cita-nombre {
+            color: #2c1810;
+            text-shadow: none;
+        }
+
+        .cita-multiple .cita-servicio {
+            color: #666;
+            text-shadow: none;
+        }
+
+        .cita-multiple .cita-peluquero {
+            color: #8B4513;
+            text-shadow: none;
+        }
+
+        /* Estilos para citas individuales con formato consistente */
+        .time-slot.booked .cita-multiple {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+
+        .time-slot.booked .cita-multiple:hover {
+            background: rgba(244, 67, 54, 0.1);
+            border-color: rgba(244, 67, 54, 0.8);
+        }
+
+        .time-slot.booked .cita-multiple .cita-nombre {
+            color: #2c1810;
+            text-shadow: none;
+        }
+
+        .time-slot.booked .cita-multiple .cita-servicio {
+            color: #666;
+            text-shadow: none;
+        }
+
+        .time-slot.booked .cita-multiple .cita-peluquero {
+            color: #8B4513;
+            text-shadow: none;
+        }
+
+        .cita-separator {
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 152, 0, 0.5), transparent);
+            margin: 3px 0;
         }
 
         .opciones {
@@ -529,12 +631,14 @@
                 align-items: stretch;
             }
             
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
+            .stats-desktop {
+                display: none;
             }
             
             .calendar-container {
                 padding: 15px;
+                width: 100%;
+                max-width: 100%;
             }
             
             .calendar-table {
@@ -743,12 +847,16 @@
         <div class="header">
             <h1>Panel de Administración</h1>
             <div class="controls">
-                <div>
+                <div class="controls-desktop">
                     <button class="btn" onclick="semanaAnterior()">◀ Semana Anterior</button>
                     <button class="btn" onclick="irAHoy()">📅 Hoy</button>
                     <button class="btn" onclick="semanaSiguiente()">Semana Siguiente ▶</button>
                 </div>
-                <div>
+                <div class="controls-mobile">
+                    <button class="btn" onclick="irAHoy()">📅 Hoy</button>
+                    <button class="btn" onclick="cargarCalendario()">🔄 Actualizar</button>
+                </div>
+                <div class="controls-desktop">
                     <button class="btn btn-secondary" onclick="window.location.href='/configuracion'">⚙️ Configuración</button>
                     <button class="btn" onclick="cargarCalendario()">🔄 Actualizar</button>
                     <button class="btn" onclick="alternarVista()" id="btn-vista">📱 Vista Responsiva</button>
@@ -765,7 +873,7 @@
         </div>
 
         <!-- Estadísticas -->
-        <div class="stats-grid">
+        <div class="stats-grid stats-desktop">
             <div class="stat-card">
                 <div class="stat-number" id="total-citas">0</div>
                 <div class="stat-label">Total Citas</div>
@@ -1034,6 +1142,7 @@
                 console.log(`📊 Citas recibidas para ${fechaAPI} (Peluquero: ${peluqueroSeleccionado || 'Todos'}):`, data);
                 
                 const citas = data.citas || [];
+                const citasPorHora = data.citas_por_hora || {};
                 
                 // Verificar si el día es especial (cerrado, festivo, domingo)
                 const diaEspecial = await verificarDiaEspecial(fechaAPI);
@@ -1046,20 +1155,48 @@
                 horas.forEach(hora => {
                     const celda = document.getElementById(`celda-${fechaAPI}-${hora}`);
                     if (celda) {
-                        // Buscar si hay una cita en esta hora
-                        const citaEnHora = citas.find(c => c.hora === hora);
+                        // Buscar si hay citas en esta hora
+                        const citasEnHora = citasPorHora[hora] || [];
                         
-                                                if (citaEnHora) {
-                            // Mostrar la cita existente
-                                                celda.innerHTML = `
-                            <div class="time-slot booked" onclick="mostrarModalCita(${citaEnHora.id}, '${citaEnHora.nombre || citaEnHora.cliente}', '${citaEnHora.telefono}', '${citaEnHora.servicio}', '${citaEnHora.peluquero_nombre || 'Sin asignar'}', '${fechaAPI}', '${citaEnHora.hora}', '${citaEnHora.precio}')">
-                                <div class="cita-info">
-                                    <span class="cita-nombre">${citaEnHora.nombre || citaEnHora.cliente}</span>
-                                    <span class="cita-servicio">${citaEnHora.servicio} - ${citaEnHora.precio}</span>
-                                    <span class="cita-peluquero">👨‍💼 ${citaEnHora.peluquero_nombre || 'Sin asignar'}</span>
-                                </div>
-                            </div>
-                        `;
+                        if (citasEnHora.length > 0) {
+                            // Mostrar todas las citas de esta hora
+                            let html = '';
+                            
+                            if (citasEnHora.length === 1) {
+                                // Una sola cita - mismo formato que múltiples
+                                const cita = citasEnHora[0];
+                                html = `
+                                    <div class="time-slot booked" onclick="mostrarModalCita(${cita.id}, '${cita.nombre || cita.cliente}', '${cita.telefono}', '${cita.servicio}', '${cita.peluquero_nombre || 'Sin asignar'}', '${fechaAPI}', '${cita.hora}', '${cita.precio}')">
+                                        <div class="cita-multiple">
+                                            <div class="cita-info">
+                                                <span class="cita-nombre">${cita.nombre || cita.cliente}</span>
+                                                <span class="cita-servicio">${cita.servicio} - ${cita.precio}</span>
+                                                <span class="cita-peluquero">👨‍💼 ${cita.peluquero_nombre || 'Sin asignar'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            } else {
+                                // Múltiples citas
+                                html = '<div class="time-slot multiple-booked">';
+                                citasEnHora.forEach((cita, index) => {
+                                    html += `
+                                        <div class="cita-multiple" onclick="mostrarModalCita(${cita.id}, '${cita.nombre || cita.cliente}', '${cita.telefono}', '${cita.servicio}', '${cita.peluquero_nombre || 'Sin asignar'}', '${fechaAPI}', '${cita.hora}', '${cita.precio}')">
+                                            <div class="cita-info">
+                                                <span class="cita-nombre">${cita.nombre || cita.cliente}</span>
+                                                <span class="cita-servicio">${cita.servicio} - ${cita.precio}</span>
+                                                <span class="cita-peluquero">👨‍💼 ${cita.peluquero_nombre || 'Sin asignar'}</span>
+                                            </div>
+                                        </div>
+                                    `;
+                                    if (index < citasEnHora.length - 1) {
+                                        html += '<hr class="cita-separator">';
+                                    }
+                                });
+                                html += '</div>';
+                            }
+                            
+                            celda.innerHTML = html;
                         } else if (diaEspecial && !tieneCitas) {
                             // Día especial sin citas: mostrar como cerrado/festivo/domingo
                             let clase = 'closed';
@@ -1118,7 +1255,9 @@
                         const tabla = document.querySelector('.calendar-table tbody');
                         if (tabla) {
                             // Encontrar la última fila del día (después de todas las horas)
-                            const ultimaFilaDia = document.querySelector(`#celda-${fechaAPI}-${horas[horas.length - 1]}`).closest('tr');
+                            const ultimaHora = horas[horas.length - 1];
+                            const celdaUltimaHora = document.getElementById(`celda-${fechaAPI}-${ultimaHora}`);
+                            const ultimaFilaDia = celdaUltimaHora ? celdaUltimaHora.closest('tr') : null;
                             
                             const nuevaFila = document.createElement('tr');
                             nuevaFila.className = 'sumatorio-fila';
@@ -1730,23 +1869,52 @@
                 // En vista responsiva, siempre mostrar hoy
                 diaActual = new Date();
                 cargarCalendarioResponsivo();
+                // Ocultar controles de escritorio en móvil
+                if (window.innerWidth <= 768) {
+                    document.querySelectorAll('.controls-desktop').forEach(el => el.style.display = 'none');
+                    document.querySelector('.controls-mobile').style.display = 'flex';
+                }
             } else {
                 btnVista.textContent = '📱 Vista Responsiva';
                 cargarCalendario();
+                // Mostrar controles de escritorio
+                if (window.innerWidth <= 768) {
+                    document.querySelectorAll('.controls-desktop').forEach(el => el.style.display = 'flex');
+                    document.querySelector('.controls-mobile').style.display = 'none';
+                }
+            }
+        }
+
+        // Función para detectar si estamos en móvil y ajustar la vista
+        function detectarDispositivo() {
+            if (window.innerWidth <= 768) {
+                // En móvil, ocultar controles de escritorio y estadísticas
+                document.querySelectorAll('.controls-desktop').forEach(el => el.style.display = 'none');
+                document.querySelector('.controls-mobile').style.display = 'flex';
+                document.querySelector('.stats-desktop').style.display = 'none';
+            } else {
+                // En escritorio, mostrar todos los controles
+                document.querySelectorAll('.controls-desktop').forEach(el => el.style.display = 'flex');
+                document.querySelector('.controls-mobile').style.display = 'none';
+                document.querySelector('.stats-desktop').style.display = 'grid';
             }
         }
 
         // Cargar calendario al iniciar
-            cargarCalendario();
-            
-            // Actualizar cada 30 segundos
-            setInterval(() => {
-                if (vistaResponsiva) {
-                    cargarCalendarioResponsivo();
-                } else {
-                    cargarCalendario();
-                }
-            }, 30000);
+        cargarCalendario();
+        detectarDispositivo();
+        
+        // Escuchar cambios de tamaño de ventana
+        window.addEventListener('resize', detectarDispositivo);
+        
+        // Actualizar cada 30 segundos
+        setInterval(() => {
+            if (vistaResponsiva) {
+                cargarCalendarioResponsivo();
+            } else {
+                cargarCalendario();
+            }
+        }, 30000);
     </script>
 </body>
 </html> 

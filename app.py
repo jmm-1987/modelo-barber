@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory, abort
 
 import os
 import smtplib
@@ -12,6 +12,77 @@ import datetime
 
 # client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  # Eliminado
 app = Flask(__name__)
+
+# Configuración para servir archivos estáticos
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    """Sirve archivos estáticos desde el directorio static"""
+    try:
+        # Verificar que el archivo existe
+        static_path = os.path.join('static', filename)
+        if not os.path.exists(static_path):
+            print(f"❌ Archivo no encontrado: {filename}")
+            abort(404)
+        
+        return send_from_directory('static', filename)
+    except Exception as e:
+        print(f"❌ Error sirviendo archivo estático {filename}: {e}")
+        abort(404)
+
+@app.route('/test_static/<filename>')
+def test_static(filename):
+    """Endpoint de prueba para verificar archivos estáticos"""
+    static_path = os.path.join('static', filename)
+    if os.path.exists(static_path):
+        return jsonify({
+            'exists': True,
+            'filename': filename,
+            'path': static_path,
+            'size': os.path.getsize(static_path)
+        })
+    else:
+        return jsonify({
+            'exists': False,
+            'filename': filename,
+            'path': static_path
+        }), 404
+
+@app.route('/diagnostico')
+def diagnostico():
+    """Endpoint de diagnóstico para verificar el estado de la aplicación"""
+    try:
+        # Verificar archivos estáticos
+        static_dir = 'static'
+        archivos_static = []
+        if os.path.exists(static_dir):
+            for archivo in os.listdir(static_dir):
+                ruta_completa = os.path.join(static_dir, archivo)
+                if os.path.isfile(ruta_completa):
+                    archivos_static.append({
+                        'nombre': archivo,
+                        'tamaño': os.path.getsize(ruta_completa)
+                    })
+        
+        # Verificar templates
+        templates_dir = 'templates'
+        archivos_templates = []
+        if os.path.exists(templates_dir):
+            for archivo in os.listdir(templates_dir):
+                if archivo.endswith('.html'):
+                    archivos_templates.append(archivo)
+        
+        return jsonify({
+            'ok': True,
+            'static_files': archivos_static,
+            'templates': archivos_templates,
+            'static_dir_exists': os.path.exists(static_dir),
+            'templates_dir_exists': os.path.exists(templates_dir)
+        })
+    except Exception as e:
+        return jsonify({
+            'ok': False,
+            'error': str(e)
+        })
 
 # Variables globales (simples, sin sesiones)
 # Nota: Se eliminaron las variables del chatbot que no se usan
@@ -795,7 +866,7 @@ def citas_dia():
     
     if not dia:
         print(f"❌ Error: fecha inválida '{dia_original}'")
-        return jsonify({'ocupadas': [], 'citas': [], 'error': 'Fecha inválida'})
+        return jsonify({'ocupadas': [], 'citas': [], 'citas_por_hora': {}, 'error': 'Fecha inválida'})
     
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
@@ -811,6 +882,7 @@ def citas_dia():
             FROM citas c 
             LEFT JOIN peluqueros p ON c.peluquero_id = p.id 
             WHERE c.dia = ? AND c.peluquero_id = ?
+            ORDER BY c.hora, p.nombre
         ''', (dia, peluquero_id))
     else:
         c.execute('SELECT COUNT(*) FROM citas WHERE dia = ?', (dia,))
@@ -822,14 +894,18 @@ def citas_dia():
             FROM citas c 
             LEFT JOIN peluqueros p ON c.peluquero_id = p.id 
             WHERE c.dia = ?
+            ORDER BY c.hora, p.nombre
         ''', (dia,))
     
     rows = c.fetchall()
     conn.close()
     
-    ocupadas = [row[1] for row in rows]
-    citas = [
-        {
+    ocupadas = []
+    citas = []
+    citas_por_hora = {}
+    
+    for row in rows:
+        cita = {
             'id': row[0], 
             'hora': row[1], 
             'nombre': row[2], 
@@ -839,11 +915,29 @@ def citas_dia():
             'peluquero_id': row[6],
             'peluquero_nombre': row[7] or 'Sin asignar',
             'dia': formatear_fecha_display(dia)
-        } for row in rows
-    ]
+        }
+        
+        # Agregar a la lista general de citas
+        citas.append(cita)
+        
+        # Agrupar por hora
+        hora = row[1]
+        if hora not in citas_por_hora:
+            citas_por_hora[hora] = []
+        citas_por_hora[hora].append(cita)
+        
+        # Agregar a horas ocupadas (solo una vez por hora)
+        if hora not in ocupadas:
+            ocupadas.append(hora)
     
     print(f"📅 Encontradas {len(citas)} citas para {dia}: {[c['hora'] for c in citas]}")
-    return jsonify({'ocupadas': ocupadas, 'citas': citas})
+    print(f"🕐 Citas agrupadas por hora: {list(citas_por_hora.keys())}")
+    
+    return jsonify({
+        'ocupadas': ocupadas, 
+        'citas': citas,
+        'citas_por_hora': citas_por_hora
+    })
 
 # --- ENDPOINT: Próximos 20 días laborables y disponibilidad ---
 @app.route('/proximos_dias_disponibles', methods=['GET'])
@@ -877,6 +971,10 @@ def enviar_recordatorio():
     hora = data.get('hora')
     servicio = data.get('servicio')
     nombre_peluqueria = 'BarberShop'  # Nombre del negocio
+    
+    # Formatear la fecha al formato dd/mm/aaaa
+    fecha_formateada = formatear_fecha_display(fecha)
+    
     try:
         # Configuración de email
         email_host = os.getenv("EMAIL_HOST")
@@ -893,7 +991,7 @@ Hola,
 Te recordamos tu cita en {nombre_peluqueria}:
 
 - Servicio: {servicio}
-- Fecha: {fecha}
+- Fecha: {fecha_formateada}
 - Hora: {hora}
 
 ¡Te esperamos!
