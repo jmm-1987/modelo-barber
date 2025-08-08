@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chatbot Burbuja</title>
   <style>
+    :root {
+      --panel-background: url('/static/fondo.png');
+    }
+    
     body {
       font-family: Arial, sans-serif;
       margin: 0;
@@ -50,6 +54,83 @@
       font-size: 20px;
       letter-spacing: 1px;
       border-bottom: 2px solid #e3e3e3;
+    }
+
+    /* Estilos para el selector de diseño */
+    .design-selector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 10px;
+      background: rgba(255,255,255,0.1);
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .design-selector label {
+      color: #fff;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .design-toggle {
+      position: relative;
+      width: 80px;
+      height: 28px;
+      background: #90caf9;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .design-toggle.active {
+      background: #f8bbd0;
+    }
+
+    .design-toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 24px;
+      height: 24px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.3s;
+    }
+
+    .design-toggle.active::after {
+      transform: translateX(54px);
+    }
+
+    .design-toggle .toggle-icon {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 9px;
+      color: #fff;
+      z-index: 1;
+      font-weight: bold;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      transition: opacity 0.3s;
+    }
+
+    .design-toggle .toggle-icon.male {
+      left: 8px;
+      opacity: 1;
+    }
+
+    .design-toggle .toggle-icon.female {
+      right: 8px;
+      opacity: 0;
+    }
+
+    .design-toggle.active .toggle-icon.male {
+      opacity: 0;
+    }
+
+    .design-toggle.active .toggle-icon.female {
+      opacity: 1;
     }
 
     #chat-body {
@@ -373,6 +454,41 @@
         width: 50px !important;
         height: 50px !important;
       }
+      
+      /* Ajustes del selector de diseño en móvil */
+      .design-selector {
+        padding: 8px;
+      }
+      
+      .design-selector label {
+        font-size: 13px;
+      }
+      
+      .design-toggle {
+        width: 70px;
+        height: 26px;
+      }
+      
+      .design-toggle::after {
+        width: 22px;
+        height: 22px;
+      }
+      
+      .design-toggle.active::after {
+        transform: translateX(46px);
+      }
+      
+      .design-toggle .toggle-icon {
+        font-size: 8px;
+      }
+      
+      .design-toggle .toggle-icon.male {
+        left: 6px;
+      }
+      
+      .design-toggle .toggle-icon.female {
+        right: 6px;
+      }
     }
   </style>
 </head>
@@ -380,12 +496,17 @@
 
   <!-- Botón flotante -->
   <button id="chat-toggle">💬</button>
-  <div id="chat-callout">¿Necesitas ayuda?</div>
+  <div id="chat-callout">Pincha aquí para abrir la aplicación</div>
 
   <!-- Widget del chatbot -->
   <div id="chat-widget">
-    <div class="header-fixed" id="header-logo" style="display: none;">
-      <img src="/static/logo.png" alt="BarberShop" style="height: 150px; width: auto; max-width: 350px; object-fit: contain;">
+    <!-- Selector de diseño -->
+    <div class="design-selector">
+      <label>Diseño:</label>
+      <div class="design-toggle" id="design-toggle" onclick="toggleDesign()">
+        <span class="toggle-icon male">Barbería</span>
+        <span class="toggle-icon female">Peliquería</span>
+      </div>
     </div>
     <div id="chat-body"></div>
     <!-- Eliminado el input y el botón de enviar -->
@@ -402,6 +523,9 @@
     const widget    = document.getElementById("chat-widget");
     const callout   = document.getElementById("chat-callout");
     const API_URL   = "/chat";
+    
+    // Variable para el diseño actual (false = masculino, true = femenino)
+    let isFemaleDesign = false;
 
     // Variables para el flujo de reserva
     let reserva = {
@@ -423,6 +547,59 @@
         callout.style.display = 'block';
       }
     }, 3000);
+
+    // Función para cambiar el diseño
+    function toggleDesign() {
+      isFemaleDesign = !isFemaleDesign;
+      const designToggle = document.getElementById('design-toggle');
+      
+      if (isFemaleDesign) {
+        designToggle.classList.add('active');
+        // Cambiar fondo a diseño femenino
+        document.body.style.backgroundImage = "url('/static/fondo_pelu.png')";
+        widget.style.backgroundImage = "linear-gradient(rgba(255,255,255,0.15), rgba(255,255,255,0.15)), url('/static/fondo_pelu.png')";
+        // Cambiar fondo del panel también
+        document.documentElement.style.setProperty('--panel-background', "url('/static/fondo_pelu.png')");
+      } else {
+        designToggle.classList.remove('active');
+        // Cambiar fondo a diseño masculino
+        document.body.style.backgroundImage = "url('/static/fondo.png')";
+        widget.style.backgroundImage = "linear-gradient(rgba(255,255,255,0.15), rgba(255,255,255,0.15)), url('/static/fondo.png')";
+        // Cambiar fondo del panel también
+        document.documentElement.style.setProperty('--panel-background', "url('/static/fondo.png')");
+      }
+      
+      // Si hay opciones principales mostradas, actualizar las imágenes
+      if (chat.children.length > 0) {
+        actualizarImagenesDiseño();
+      }
+    }
+
+    // Función para actualizar las imágenes según el diseño
+    function actualizarImagenesDiseño() {
+      const suffix = isFemaleDesign ? '_pelu' : '';
+      
+      // Actualizar imágenes de los botones principales
+      const relojImg = chat.querySelector('img[src*="reloj"]');
+      if (relojImg) {
+        relojImg.src = `/static/reloj${suffix}.png`;
+      }
+      
+      const ubicacionImg = chat.querySelector('img[src*="ubicacion"]');
+      if (ubicacionImg) {
+        ubicacionImg.src = `/static/ubicacion${suffix}.png`;
+      }
+      
+      const galeriaImg = chat.querySelector('img[src*="galeria"]');
+      if (galeriaImg) {
+        galeriaImg.src = `/static/galeria${suffix}.png`;
+      }
+      
+      const citasImg = chat.querySelector('img[src*="citas"]');
+      if (citasImg) {
+        citasImg.src = `/static/citas${suffix}.png`;
+      }
+    }
 
     // Mostrar/Ocultar Chat
     toggleBtn.onclick = () => {
@@ -500,37 +677,32 @@
       // Limpiar el chat
       chat.innerHTML = '';
       
-      // Mostrar logotipo solo en la pantalla de bienvenida
-      const headerLogo = document.getElementById('header-logo');
-      if (mostrarSaludo) {
-        headerLogo.style.display = 'flex';
-      } else {
-        headerLogo.style.display = 'none';
-      }
+      // El logo ha sido eliminado del diseño
       
       // Siempre mostrar la pantalla de inicio completa
       chat.innerHTML += `<div class="header-container" style="margin-top:20px;">
         <div class="welcome-message">¡Hola!<br>Bienvenido a BarberShop, ¿en qué podemos ayudarte hoy?</div>
       </div>`;
+      const suffix = isFemaleDesign ? '_pelu' : '';
       chat.innerHTML += `<div class="botones-grid">
         <div class='opcion-animada' onclick="opcionPrincipal('consultarHorarios')">
           <div class='icono-animado'>
-            <img src="/static/reloj.png" alt="Horarios" class="boton-imagen" />
+            <img src="/static/reloj${suffix}.png" alt="Horarios" class="boton-imagen" />
           </div>
         </div>
         <div class='opcion-animada' onclick="opcionPrincipal('verUbicacion')">
           <div class='icono-animado'>
-            <img src="/static/ubicacion.png" alt="Ubicación" class="boton-imagen" />
+            <img src="/static/ubicacion${suffix}.png" alt="Ubicación" class="boton-imagen" />
           </div>
         </div>
         <div class='opcion-animada' onclick="opcionPrincipal('galeriaTrabajos')">
           <div class='icono-animado'>
-            <img src="/static/galeria.png" alt="Galería" class="boton-imagen" />
+            <img src="/static/galeria${suffix}.png" alt="Galería" class="boton-imagen" />
           </div>
         </div>
         <div class='opcion-animada' onclick="opcionPrincipal('solicitarCita')">
           <div class='icono-animado'>
-            <img src="/static/citas.png" alt="Citas" class="boton-imagen" />
+            <img src="/static/citas${suffix}.png" alt="Citas" class="boton-imagen" />
           </div>
         </div>
       </div>`;
@@ -614,9 +786,7 @@
       // Limpiar el chat
       chat.innerHTML = '';
       
-      // Ocultar logotipo en todas las pantallas excepto la de bienvenida
-      const headerLogo = document.getElementById('header-logo');
-      headerLogo.style.display = 'none';
+      // El logo ha sido eliminado del diseño
       if (accion === 'consultarHorarios') {
         ocultarFlechaScroll();
         chat.innerHTML += `

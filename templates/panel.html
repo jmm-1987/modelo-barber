@@ -4,8 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - Barbería</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/panel-responsive.css">
     <style>
+        :root {
+            --panel-background: url('/static/fondo.png');
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -14,7 +21,7 @@
 
         body { 
             font-family: 'Georgia', 'Times New Roman', serif; 
-            background: url('/static/fondo.png') no-repeat center center fixed;
+            background: var(--panel-background, url('/static/fondo.png')) no-repeat center center fixed;
             background-size: cover;
             margin: 0; 
             padding: 20px; 
@@ -38,7 +45,7 @@
             background: transparent;
             border-radius: 0; 
             box-shadow: none; 
-            padding: 40px;
+            padding: 25px;
             border: none;
             position: relative;
             z-index: 1;
@@ -48,33 +55,40 @@
 
         .header {
             background: rgba(255, 255, 255, 0.05);
-            padding: 30px;
-            border-radius: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 10px 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            margin-top: 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .header h1 {
-            background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #e8f5e8;
             text-align: center; 
-            margin-bottom: 20px;
-            font-size: 32px;
-            font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            font-family: 'Georgia', serif;
+            margin-bottom: 5px;
+            margin-top: 5px;
+            font-size: 36px;
+            font-weight: 800;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(232,245,232,0.3);
+            font-family: 'Montserrat', 'Arial', sans-serif;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
         .controls {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             flex-wrap: wrap;
             gap: 15px;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         /* Controles responsivos */
@@ -90,72 +104,83 @@
             .controls-mobile {
                 display: flex;
                 justify-content: center;
-                gap: 10px;
+                gap: 3px;
                 width: 100%;
+                flex-wrap: wrap;
+            }
+            
+            .controls-mobile .btn {
+                padding: 4px 6px;
+                font-size: 10px;
+                min-width: auto;
+                flex: 1;
+                max-width: 60px;
             }
         }
 
         .btn {
-            background: linear-gradient(135deg, #d4a574 0%, #b8860b 100%);
-            color: #2c1810;
-            border: 2px solid #8B4513;
-            padding: 12px 24px;
-            border-radius: 8px;
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+            padding: 8px 16px;
+            border-radius: 6px;
             cursor: pointer;
-            font-weight: 700;
-            font-size: 14px;
-            font-family: 'Georgia', serif;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
+            font-weight: 500;
+            font-size: 13px;
+            font-family: 'Arial', sans-serif;
+            text-transform: none;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             text-decoration: none;
             display: inline-block;
         }
 
         .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(139, 69, 19, 0.4);
-            background: linear-gradient(135deg, #b8860b 0%, #8B4513 100%);
+            background: #e8e8e8;
+            border-color: #ccc;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
         }
 
         .btn:active {
-            transform: translateY(-1px);
+            transform: translateY(0);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .btn-secondary {
-            background: linear-gradient(135deg, #90caf9 0%, #2196f3 100%);
-            border-color: #1976d2;
-            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+            background: #e3f2fd;
+            color: #1976d2;
+            border-color: #90caf9;
         }
 
         .btn-secondary:hover {
-            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-            box-shadow: 0 8px 25px rgba(33, 150, 243, 0.4);
+            background: #bbdefb;
+            border-color: #64b5f6;
         }
 
         .btn-danger {
-            background: linear-gradient(135deg, #ef5350 0%, #d32f2f 100%);
-            border-color: #c62828;
-            box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3);
+            background: #ffebee;
+            color: #d32f2f;
+            border-color: #ef9a9a;
         }
 
         .btn-danger:hover {
-            background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
-            box-shadow: 0 8px 25px rgba(211, 47, 47, 0.4);
+            background: #ffcdd2;
+            border-color: #e57373;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 15px;
             margin-bottom: 30px;
         }
 
         .stat-card {
             background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 15px;
+            padding: 15px 10px;
+            border-radius: 12px;
             text-align: center;
             backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -163,21 +188,22 @@
         }
 
         .stat-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
         }
 
         .stat-number {
-            font-size: 32px;
+            font-size: 24px;
             font-weight: bold;
             color: #d4a574;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
 
         .stat-label {
             color: #fff;
-            font-size: 14px;
+            font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            line-height: 1.2;
         }
 
         .calendar-container {
@@ -842,24 +868,9 @@
 </head>
 <body>
     <div class="container">
+        <!-- Título solo -->
         <div class="header">
             <h1>Panel de Administración</h1>
-            <div class="controls">
-                <div class="controls-desktop">
-                    <button class="btn" onclick="semanaAnterior()">◀ Semana Anterior</button>
-                    <button class="btn" onclick="irAHoy()">📅 Hoy</button>
-                    <button class="btn" onclick="semanaSiguiente()">Semana Siguiente ▶</button>
-                </div>
-                <div class="controls-mobile">
-                    <button class="btn" onclick="irAHoy()">📅 Hoy</button>
-                    <button class="btn" onclick="cargarCalendario()">🔄 Actualizar</button>
-                </div>
-                <div class="controls-desktop">
-                    <button class="btn btn-secondary" onclick="window.location.href='/configuracion'">⚙️ Configuración</button>
-                    <button class="btn" onclick="cargarCalendario()">🔄 Actualizar</button>
-                    <button class="btn" onclick="alternarVista()" id="btn-vista">📱 Vista Responsiva</button>
-                </div>
-            </div>
         </div>
 
         <!-- Filtro por peluquero -->
@@ -899,6 +910,25 @@
             <div class="stat-card">
                 <div class="stat-number" id="ingresos-semana">0€</div>
                 <div class="stat-label">Ingresos Esta Semana</div>
+            </div>
+        </div>
+
+        <!-- Controles entre estadísticas y calendario -->
+        <div class="controls">
+            <div class="controls-desktop">
+                <button class="btn" onclick="semanaAnterior()">◀ Semana Anterior</button>
+                <button class="btn" onclick="irAHoy()">📅 Hoy</button>
+                <button class="btn" onclick="semanaSiguiente()">Semana Siguiente ▶</button>
+                <button class="btn btn-secondary" onclick="window.location.href='/configuracion'">⚙️ Configuración</button>
+                <button class="btn" onclick="cargarCalendario()">🔄 Actualizar</button>
+                <button class="btn" onclick="alternarVista()" id="btn-vista">📅 Vista Día</button>
+            </div>
+            <div class="controls-mobile">
+                <button class="btn" onclick="irAHoy()">📅 Hoy</button>
+                <button class="btn" onclick="diaAnterior()" id="btn-anterior-mobile">◀</button>
+                <button class="btn" onclick="diaSiguiente()" id="btn-siguiente-mobile">▶</button>
+                <button class="btn" onclick="cargarCalendario()">🔄</button>
+                <button class="btn" onclick="alternarVista()" id="btn-vista-mobile">📅</button>
             </div>
         </div>
 
@@ -1739,8 +1769,7 @@
         // Función para cargar calendario responsivo (un día)
         async function cargarCalendarioResponsivo() {
             try {
-                // En vista responsiva, siempre mostrar hoy
-                diaActual = new Date();
+                // Usar la fecha actual del estado global, no siempre hoy
                 const fecha = diaActual.toISOString().split('T')[0];
                 
                 // Cargar horarios disponibles desde la BD
@@ -1868,26 +1897,122 @@
         function alternarVista() {
             vistaResponsiva = !vistaResponsiva;
             const btnVista = document.getElementById('btn-vista');
+            const btnVistaMobile = document.getElementById('btn-vista-mobile');
             
             if (vistaResponsiva) {
                 btnVista.textContent = '📊 Vista Semanal';
-                // En vista responsiva, siempre mostrar hoy
-                diaActual = new Date();
+                btnVistaMobile.textContent = '📊 Vista Semanal';
+                // En vista responsiva, cambiar botones a navegación de días
+                cambiarBotonesNavegacion('dias');
+                // En vista responsiva, mantener la fecha actual del estado
                 cargarCalendarioResponsivo();
-                // Ocultar controles de escritorio en móvil
-                if (window.innerWidth <= 768) {
-                    document.querySelectorAll('.controls-desktop').forEach(el => el.style.display = 'none');
-                    document.querySelector('.controls-mobile').style.display = 'flex';
+                // En vista responsiva, usar detectarDispositivo para mostrar los controles correctos
+                detectarDispositivo();
+            } else {
+                btnVista.textContent = '📅 Vista Día';
+                btnVistaMobile.textContent = '📅 Vista Día';
+                // En vista normal, cambiar botones a navegación de semanas
+                cambiarBotonesNavegacion('semanas');
+                cargarCalendario();
+                // En vista normal, usar detectarDispositivo para mostrar los controles correctos
+                detectarDispositivo();
+            }
+        }
+
+        // Función para cambiar los botones de navegación
+        function cambiarBotonesNavegacion(tipo) {
+            // Buscar botones específicos por su texto actual
+            const botones = document.querySelectorAll('.controls-desktop .btn');
+            let btnAnterior = null;
+            let btnSiguiente = null;
+            
+            // Buscar botones por su texto o posición
+            botones.forEach((btn, index) => {
+                const texto = btn.textContent;
+                if (texto.includes('Semana Anterior') || texto.includes('Día Anterior')) {
+                    btnAnterior = btn;
+                }
+                if (texto.includes('Semana Siguiente') || texto.includes('Día Siguiente')) {
+                    btnSiguiente = btn;
+                }
+            });
+            
+            // Si no los encuentra por texto, usar posición
+            if (!btnAnterior && botones.length >= 1) {
+                btnAnterior = botones[0];
+            }
+            if (!btnSiguiente && botones.length >= 3) {
+                btnSiguiente = botones[2];
+            }
+            
+            // Botones móviles
+            const btnAnteriorMobile = document.getElementById('btn-anterior-mobile');
+            const btnSiguienteMobile = document.getElementById('btn-siguiente-mobile');
+            
+            if (tipo === 'dias') {
+                // Cambiar a navegación de días
+                if (btnAnterior) {
+                    btnAnterior.textContent = '◀ Día Anterior';
+                    btnAnterior.onclick = diaAnterior;
+                    console.log('Botón anterior cambiado a días');
+                }
+                if (btnSiguiente) {
+                    btnSiguiente.textContent = 'Día Siguiente ▶';
+                    btnSiguiente.onclick = diaSiguiente;
+                    console.log('Botón siguiente cambiado a días');
+                }
+                
+                // Configurar botones móviles para días
+                if (btnAnteriorMobile) {
+                    btnAnteriorMobile.textContent = '◀';
+                    btnAnteriorMobile.onclick = diaAnterior;
+                }
+                if (btnSiguienteMobile) {
+                    btnSiguienteMobile.textContent = '▶';
+                    btnSiguienteMobile.onclick = diaSiguiente;
                 }
             } else {
-                btnVista.textContent = '📱 Vista Responsiva';
-                cargarCalendario();
-                // Mostrar controles de escritorio
-                if (window.innerWidth <= 768) {
-                    document.querySelectorAll('.controls-desktop').forEach(el => el.style.display = 'flex');
-                    document.querySelector('.controls-mobile').style.display = 'none';
+                // Cambiar a navegación de semanas
+                if (btnAnterior) {
+                    btnAnterior.textContent = '◀ Semana Anterior';
+                    btnAnterior.onclick = semanaAnterior;
+                    console.log('Botón anterior cambiado a semanas');
+                }
+                if (btnSiguiente) {
+                    btnSiguiente.textContent = 'Semana Siguiente ▶';
+                    btnSiguiente.onclick = semanaSiguiente;
+                    console.log('Botón siguiente cambiado a semanas');
+                }
+                
+                // Configurar botones móviles para semanas
+                if (btnAnteriorMobile) {
+                    btnAnteriorMobile.textContent = '◀';
+                    btnAnteriorMobile.onclick = semanaAnterior;
+                }
+                if (btnSiguienteMobile) {
+                    btnSiguienteMobile.textContent = '▶';
+                    btnSiguienteMobile.onclick = semanaSiguiente;
                 }
             }
+        }
+
+        // Funciones para navegación de días
+        function diaAnterior() {
+            console.log('Función diaAnterior ejecutada');
+            console.log('Fecha antes:', diaActual.toDateString());
+            diaActual.setDate(diaActual.getDate() - 1);
+            console.log('Nueva fecha:', diaActual.toDateString());
+            console.log('Fecha ISO:', diaActual.toISOString().split('T')[0]);
+            cargarCalendarioResponsivo();
+        }
+
+        function diaSiguiente() {
+            console.log('Función diaSiguiente ejecutada');
+            console.log('Fecha antes:', diaActual.toDateString());
+            diaActual.setDate(diaActual.getDate() + 1);
+            console.log('Nueva fecha:', diaActual.toDateString());
+            console.log('Fecha ISO:', diaActual.toISOString().split('T')[0]);
+            cargarCalendarioResponsivo();
         }
 
         // Función para detectar si estamos en móvil y ajustar la vista
@@ -1908,6 +2033,8 @@
         // Cargar calendario al iniciar
         cargarCalendario();
         detectarDispositivo();
+        // Inicializar botones de navegación (vista semanal por defecto)
+        cambiarBotonesNavegacion('semanas');
         
         // Escuchar cambios de tamaño de ventana
         window.addEventListener('resize', detectarDispositivo);
