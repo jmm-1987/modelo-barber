@@ -104,17 +104,22 @@
             .controls-mobile {
                 display: flex;
                 justify-content: center;
-                gap: 3px;
+                gap: 1px;
                 width: 100%;
-                flex-wrap: wrap;
+                flex-wrap: nowrap;
             }
             
             .controls-mobile .btn {
-                padding: 4px 6px;
-                font-size: 10px;
+                padding: 1px 2px;
+                font-size: 6px;
                 min-width: auto;
                 flex: 1;
-                max-width: 60px;
+                max-width: 20px;
+                margin: 0 1px;
+                border-radius: 2px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
         }
 
@@ -921,14 +926,18 @@
                 <button class="btn" onclick="semanaSiguiente()">Semana Siguiente ▶</button>
                 <button class="btn btn-secondary" onclick="window.location.href='/configuracion'">⚙️ Configuración</button>
                 <button class="btn" onclick="cargarCalendario()">🔄 Actualizar</button>
-                <button class="btn" onclick="alternarVista()" id="btn-vista">📅 Vista Día</button>
+                <button class="btn" onclick="alternarVista()" id="btn-vista">Vista Día</button>
             </div>
             <div class="controls-mobile">
-                <button class="btn" onclick="irAHoy()">📅 Hoy</button>
-                <button class="btn" onclick="diaAnterior()" id="btn-anterior-mobile">◀</button>
-                <button class="btn" onclick="diaSiguiente()" id="btn-siguiente-mobile">▶</button>
-                <button class="btn" onclick="cargarCalendario()">🔄</button>
-                <button class="btn" onclick="alternarVista()" id="btn-vista-mobile">📅</button>
+                <div class="controls-row-1">
+                    <button class="btn btn-hoy" onclick="irAHoy()" style="min-width: 140px; width: 140px; padding: 12px 28px;">📅 Hoy</button>
+                    <button class="btn btn-flecha" onclick="diaAnterior()" id="btn-anterior-mobile">◀</button>
+                    <button class="btn btn-flecha" onclick="diaSiguiente()" id="btn-siguiente-mobile">▶</button>
+                    <button class="btn btn-actualizar" onclick="actualizarCitasActuales()" style="min-width: 170px; width: 170px; padding: 12px 28px;">🔄 Actualizar</button>
+                </div>
+                <div class="controls-row-2">
+                    <button class="btn" onclick="alternarVista()" id="btn-vista-mobile">Vista Diaria</button>
+                </div>
             </div>
         </div>
 
@@ -1766,6 +1775,43 @@
             cargarCalendarioResponsivo();
         }
 
+        // Función para actualizar solo las citas sin cambiar la vista
+        async function actualizarCitasActuales() {
+            try {
+                console.log('🔄 Actualizando citas del día actual...');
+                
+                // Determinar si estamos en vista responsiva o normal
+                if (vistaResponsiva) {
+                    // Vista responsiva: actualizar solo las citas del día actual
+                    const fecha = diaActual.toISOString().split('T')[0];
+                    const response = await fetch('/obtener_horarios_disponibles');
+                    if (response.ok) {
+                        const data = await response.json();
+                        const horas = data.horarios || [];
+                        await cargarCitasDiaResponsivo(fecha, horas);
+                        await cargarSumatorioPrecios(fecha, horas);
+                    }
+                } else {
+                    // Vista semanal: actualizar solo las citas de la semana actual
+                    const dias = generarDiasSemana(semanaActual);
+                    const response = await fetch('/obtener_horarios_disponibles');
+                    if (response.ok) {
+                        const data = await response.json();
+                        const horas = data.horarios || [];
+                        await cargarCitasSemana(dias, horas);
+                    }
+                }
+                
+                // Actualizar estadísticas
+                await cargarEstadisticas();
+                
+                console.log('✅ Citas actualizadas correctamente');
+                
+            } catch (error) {
+                console.error('❌ Error actualizando citas:', error);
+            }
+        }
+
         // Función para cargar calendario responsivo (un día)
         async function cargarCalendarioResponsivo() {
             try {
@@ -1900,8 +1946,8 @@
             const btnVistaMobile = document.getElementById('btn-vista-mobile');
             
             if (vistaResponsiva) {
-                btnVista.textContent = '📊 Vista Semanal';
-                btnVistaMobile.textContent = '📊 Vista Semanal';
+                btnVista.textContent = 'Vista Semanal';
+                btnVistaMobile.textContent = 'Vista Semanal';
                 // En vista responsiva, cambiar botones a navegación de días
                 cambiarBotonesNavegacion('dias');
                 // En vista responsiva, mantener la fecha actual del estado
@@ -1909,9 +1955,9 @@
                 // En vista responsiva, usar detectarDispositivo para mostrar los controles correctos
                 detectarDispositivo();
             } else {
-                btnVista.textContent = '📅 Vista Día';
-                btnVistaMobile.textContent = '📅 Vista Día';
-                // En vista normal, cambiar botones a navegación de semanas
+                btnVista.textContent = 'Vista Diaria';
+                btnVistaMobile.textContent = 'Vista Diaria';
+                // En vista normal, cambiar botones a navegacion de semanas
                 cambiarBotonesNavegacion('semanas');
                 cargarCalendario();
                 // En vista normal, usar detectarDispositivo para mostrar los controles correctos
